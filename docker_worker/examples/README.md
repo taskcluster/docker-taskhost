@@ -1,4 +1,3 @@
-# Tasks
+# Example tasks which can be used to play with queue/provisioner.
 
-The task design here is very early and generally just placeholder... The
-examples _will_ be used in tests however.
+
