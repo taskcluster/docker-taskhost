@@ -1,0 +1,12 @@
+{
+  "command": [
+    "./bin/git_branch_taskrunner",
+    "https://github.com/mozilla-b2g/gaia.git",
+    "master",
+    "make",
+    "test-integration"
+  ],
+  "image": "lightsofapollo/gaia-taskenv",
+  "features": {}
+}
+

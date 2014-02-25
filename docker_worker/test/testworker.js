@@ -18,7 +18,7 @@ exports.TEST_PROVISIONER_ID = 'jonasfj-says-dont-provision-this';
 /** Wait for a message, fetch result and stop listening */
 var waitForResult = function(listener) {
   return new Promise(function(accept, reject) {
-    listener.once('message', function(message) {
+    listener.once('completed', function(message) {
       // Stop listening
       listener.destroy();
       // Accept message
@@ -110,4 +110,3 @@ exports.submitTaskAndGetResults = function(payload) {
     throw err;
   });
 };
-

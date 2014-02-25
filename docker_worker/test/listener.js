@@ -7,15 +7,21 @@ var debug         = require('debug')('taskcluster-docker-worker:Listener');
 var testworker    = require('./testworker');
 var request       = require('superagent');
 
+var DEFAULT_EXCHANGES = [
+  'v1/queue:task-completed'
+];
+
 /** Listen for messages for completed task from a given workerType */
-var Listener = function(workerType) {
+var Listener = function(workerType, provisionerId, exchanges) {
   // Construct superclass
   EventEmitter.call(this);
 
   // Store workerType, we'll need it when binding
   this.workerType = workerType;
+  this.provisionerId = provisionerId || testworker.TEST_PROVISIONER_ID;
 
   // Store connection and queue
+  this.exchanges = exchanges || DEFAULT_EXCHANGES;
   this.conn   = null;
   this.queue  = null;
 };
@@ -45,7 +51,7 @@ Listener.prototype.listen = function() {
   });
 
   // Declare queue
-  var created_queue = connected.then(function() {
+  var createdQueue = connected.then(function() {
     return new Promise(function(accept, reject) {
       that.queue = that.conn.queue('', {
         passive:                    false,
@@ -60,20 +66,28 @@ Listener.prototype.listen = function() {
   });
 
   // So subscribe and bind to queue, return a promise that this happens
-  return created_queue.then(function() {
+  return createdQueue.then(function() {
     return new Promise(function(accept, reject) {
       that.queue.subscribe(function(message) {
-        that.emit('message', message);
+        var type = message.status.state;
+        that.emit(type, message);
       });
+
       // Create a routing pattern that will only match our specific workerType
-      var routingPattern = '*.*.*.*.' + testworker.TEST_PROVISIONER_ID + '.' +
+      var routingPattern = '*.*.*.*.' + that.provisionerId + '.' +
                            that.workerType + '.#';
-      // Bind the task completed exchange
-      that.queue.bind('v1/queue:task-completed', routingPattern, function() {
-        debug("Listening next task");
+
+      function handleBind() {
+        debug("Bound queue to exchanges: ", that.exchanges);
         accept();
+      }
+
+      that.exchanges.forEach(function(exchange) {
+        // XXX: amqp does the intentionally weird thing of only firing once even
+        // though we issue multiple binds =/ wtf
+        that.queue.bind(exchange, routingPattern, handleBind);
       });
-    })
+    });
   });
 };
 
