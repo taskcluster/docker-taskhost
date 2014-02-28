@@ -1,16 +1,113 @@
 #! /usr/bin/env node
 
+var debug         = require('debug')('post-task');
+var logStream     = require('taskcluster-logstream');
+var fsPath        = require('path');
 var queue         = require('../queue');
 var program       = require('commander');
+var request       = require('superagent-promise');
+var EventEmitter  = require('events').EventEmitter;
+var Listener      = require('../test/listener');
+var Promise       = require('promise');
 
 var username = process.env.USER || process.env.USERNAME || 'nobody';
 
 var DEFAULT_OWNER = username + '@localhost.local';
 var DEFAULT_PROVISIONER_ID = 'aws-provisioner';
 
+function getLogUrl(url) {
+  return new Promise(function(accept, reject) {
+    function fetch() {
+      request('GET', url).end().then(function(res) {
+        if (!res.ok) return setTimeout(fetch, 100);
+        accept(res.body);
+      });
+    }
+    fetch();
+  });
+}
+
+function TaskMonitor(listener) {
+  listener.once('running', this.onRunning.bind(this));
+  listener.once('completed', this.onCompleted.bind(this));
+
+  this.waitingForLogs = true;
+  EventEmitter.call(this);
+}
+
+TaskMonitor.prototype = {
+  __proto__: EventEmitter.prototype,
+
+  onRunning: function(task) {
+    var logs = task.logsUrl;
+    return getLogUrl(task.logsUrl).then(function(logLinks) {
+      var reader = logStream(logLinks.logs['terminal.log'], {
+        intervalMS: 10,
+        headers: { 'x-ms-version': '2013-08-15' }
+      });
+
+      reader.pipe(process.stdout, { end: false });
+      reader.once('end', function() {
+        this.waitingForLogs = false;
+        this.emit('log end');
+      }.bind(this));
+    }.bind(this));
+  },
+
+  onCompleted: function(task) {
+    if (!this.waitingForLogs) {
+      return this.onEnd(task);
+    }
+    this.once('log end', this.onEnd.bind(this, task));
+  },
+
+  onEnd: function(task) {
+    request('GET', task.resultUrl).end().then(function(res) {
+      this.emit('result', res.body);
+    }.bind(this)).catch(
+      this.emit.bind(this, 'error')
+    );
+  },
+};
+
+
+function postTask(task, options) {
+  var listener = new Listener(options.workerType, options.provisionerId, [
+    'v1/queue:task-completed',
+    'v1/queue:task-running'
+  ]);
+
+  // can be either json or js does not matter
+  task = require(fsPath.resolve(task));
+
+  listener.listen().then(function() {
+    return queue.postTask(task, {
+      provisionerId:  options.provisionerId,
+      workerType:     options.workerType,
+      owner:          options.owner
+    });
+  }).then(function(taskId) {
+    // task has been created create the monitor and wait for the result.
+    var monitor = new TaskMonitor(listener);
+
+    monitor.once('result', function(taskResult) {
+      var result = taskResult.result;
+      console.log(
+        'task ran in %s ms',
+        result.stopTimestamp - result.startTimestamp
+      );
+      process.exit(result.exitCode);
+    });
+  }).catch(function(err) {
+    // no task so we bail
+    console.log("Failed to post task", err);
+    process.exit(1);
+  });
+}
+
 program
   .version(require('../package.json').version)
-  .command('post')
+  .command('post <examples/echo.json>')
   .option(
     '--provisioner-id <provisioner-id>',
     "provisionerId, defaults 'aws-provisioner'",
@@ -25,21 +122,6 @@ program
     "task owners email address",
     DEFAULT_OWNER
   )
-  .option(
-    '--payload <payload>',
-    "JSON Payload"
-  )
-  .action(function(options) {
-    queue.postTask(JSON.parse(options.payload), {
-      provisionerId:  options.provisionerId,
-      workerType:     options.workerType,
-      owner:          options.owner
-    }).then(function(taskId) {
-      console.log("Posted task was assigned taskId: " + taskId);
-    }).catch(function(err) {
-      console.log("Failed to post task", err);
-      process.exit(1);
-    });
-  });
+  .action(postTask);
 
 program.parse(process.argv);

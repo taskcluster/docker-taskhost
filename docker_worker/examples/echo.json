@@ -1,0 +1,5 @@
+{
+  "command": ["echo", "woot"],
+  "image": "ubuntu",
+  "features": {}
+}

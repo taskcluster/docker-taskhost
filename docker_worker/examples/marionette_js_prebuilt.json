@@ -1,0 +1,9 @@
+{
+  "command": [
+    "make",
+    "test-integration",
+    "REPORTER=mocha-tbpl-reporter"
+  ],
+  "image": "lightsofapollo/gaia-prebuilt",
+  "features": {}
+}

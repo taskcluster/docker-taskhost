@@ -79,6 +79,8 @@ exports.postTask = function(payload, options) {
     tags:                     options.tags        || {}
   };
 
+  debug('post task', task);
+
   // Post to server
   return new Promise(function(accept, reject) {
     request
