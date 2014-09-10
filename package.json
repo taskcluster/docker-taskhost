@@ -38,7 +38,7 @@
     "jayschema": "^0.2.7",
     "middleware-object-hooks": "0.0.3",
     "mime": "^1.2.11",
-    "papertrail": "^1.0.1",
+    "papertrail": "^1.0.2",
     "promise": "^5.0.0",
     "proxy": "^0.2.3",
     "statsd-client": "0.0.15",
