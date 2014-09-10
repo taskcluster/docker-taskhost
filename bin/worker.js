@@ -134,10 +134,15 @@ co(function *() {
     workerType: config.workerType
   });
 
-  config.remoteLogs = new Papertrail(config.papertrail, config.workerId, [
-    'worker/' + config.provisionerId + '/worker-type/' + config.workerType,
-    'worker/' + config.provisionerId + '/worker-group/' + config.workerGroup
-  ]);
+  config.remoteLogs = new Papertrail(
+    config.papertrail,
+    config.host,
+    config.workerId,
+    [
+      'worker/' + config.provisionerId + '/worker-type/' + config.workerType,
+      'worker/' + config.provisionerId + '/worker-group/' + config.workerGroup
+    ]
+  );
 
   var runtime = new Runtime(config);
 

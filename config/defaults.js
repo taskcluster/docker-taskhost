@@ -1,7 +1,11 @@
-module.exports = {
+var os = require('os');
 
-  // Hostname of this docker worker
-  host: 'localhost',
+module.exports = {
+  // Private hostname for syslog.
+  hostname: os.hostname(),
+
+  // Public hostname of this docker worker used for live log, etc...
+  publicHostname: 'localhost',
 
   // Run test only teardown and logging events.
   testMode: false,
