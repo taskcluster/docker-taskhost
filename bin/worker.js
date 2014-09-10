@@ -11,6 +11,7 @@ var Runtime = require('../lib/runtime');
 var TaskListener = require('../lib/task_listener');
 var ShutdownManager = require('../lib/shutdown_manager');
 var Stats = require('../lib/stat');
+var Papertrail = require('../lib/papertrail');
 
 // Available target configurations.
 var allowedHosts = ['aws', 'test'];
@@ -133,7 +134,19 @@ co(function *() {
     workerType: config.workerType
   });
 
+  config.remoteLogs = new Papertrail(config.papertrail, config.workerId, [
+    'worker/' + config.provisionerId + '/worker-type/' + config.workerType,
+    'worker/' + config.provisionerId + '/worker-group/' + config.workerGroup
+  ]);
+
   var runtime = new Runtime(config);
+
+  // Setup remote logs.
+  yield config.remoteLogs.setup();
+  if (config.remoteLogs.system) {
+    runtime.log('remote logging to system', config.remoteLogs.system);
+    runtime.log('remote logging to groups', config.remoteLogs.groups);
+  }
 
   // Build the listener and connect to the queue.
   var taskListener = new TaskListener(runtime);
@@ -150,15 +163,18 @@ co(function *() {
 
   // Test only logic for clean shutdowns (this ensures our tests actually go
   // through the entire steps of running a task).
-  if (workerConf.get('testMode')) {
+  if (runtime.testMode) {
     // Gracefullyish close the connection.
-    process.once('message', co(function* (msg) {
-      if (msg.type !== 'halt') return;
+    process.once('SIGINT', co(function* (msg) {
       // Halt will wait for the worker to be in an idle state then pause all
       // incoming messages and close the connection...
       function* halt() {
         taskListener.pause();
-        yield taskListener.close();
+        yield [
+          config.remoteLogs.teardown(),
+          taskListener.close()
+        ];
+        process.exit();
       }
       if (taskListener.isIdle()) return yield halt;
       taskListener.once('idle', co(halt));

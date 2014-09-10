@@ -10,6 +10,12 @@ module.exports = {
   taskclusterProxyImage: 'taskcluster/proxy',
   taskclusterLogImage: 'taskcluster/logserve',
 
+  papertrail: {
+    // Papertrail destination port used to determine the log stream.
+    desintation: { port: null },
+    token: process.env.PAPERTRAIL_API_TOKEN
+  },
+
   logging: {
     liveLogChunkInterval: 5000, // 5 seconds
     // Added to the current date to make up the expiry time for logs. This is
