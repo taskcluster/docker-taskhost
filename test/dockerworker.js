@@ -25,7 +25,8 @@ var COPIED_ENV = [
   'AZURE_STORAGE_ACCOUNT',
   'AZURE_STORAGE_ACCESS_KEY',
   'TASKCLUSTER_CLIENT_ID',
-  'TASKCLUSTER_ACCESS_TOKEN'
+  'TASKCLUSTER_ACCESS_TOKEN',
+  'PAPERTRAIL_API_TOKEN'
 ];
 
 function eventPromise(listener, event) {
@@ -108,7 +109,8 @@ DockerWorker.prototype = {
     if (this.process) {
       var proc = this.process;
       // Ensure the container is killed and removed.
-      yield proc.container.kill();
+      yield proc.container.kill({ signal: 'SIGINT' });
+      yield proc.container.wait();
       yield proc.container.remove();
       this.process = null;
     }

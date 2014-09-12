@@ -1,7 +1,11 @@
-module.exports = {
+var os = require('os');
 
-  // Hostname of this docker worker
-  host: 'localhost',
+module.exports = {
+  // Private hostname for syslog.
+  hostname: os.hostname(),
+
+  // Public hostname of this docker worker used for live log, etc...
+  publicHostname: 'localhost',
 
   // Run test only teardown and logging events.
   testMode: false,
@@ -9,6 +13,19 @@ module.exports = {
   // Image used to  create the taskcluster proxy container.
   taskclusterProxyImage: 'taskcluster/proxy',
   taskclusterLogImage: 'taskcluster/logserve',
+
+  papertrail: {
+    // Papertrail is system wide not only in the docker code so we need to wire
+    // it up outside of this process but also need to register worker groups
+    // when we startup...
+    systemId: process.env.PAPERTRAIL_SYSTEM_ID,
+
+    // Papertrail destination port used to determine the log stream.
+    desintation: { port: null },
+
+    // Authentication.
+    token: process.env.PAPERTRAIL_API_TOKEN
+  },
 
   logging: {
     liveLogChunkInterval: 5000, // 5 seconds
