@@ -137,7 +137,6 @@ co(function *() {
   config.remoteLogs = new Papertrail(
     config.papertrail,
     config.host,
-    config.workerId,
     [
       'worker/' + config.provisionerId + '/worker-type/' + config.workerType,
       'worker/' + config.provisionerId + '/worker-group/' + config.workerGroup
@@ -148,8 +147,8 @@ co(function *() {
 
   // Setup remote logs.
   yield config.remoteLogs.setup();
-  if (config.remoteLogs.system) {
-    runtime.log('remote logging to system', config.remoteLogs.system);
+  if (config.remoteLogs.systemId) {
+    runtime.log('remote logging to system', config.remoteLogs.systemId);
     runtime.log('remote logging to groups', config.remoteLogs.groups);
   }
 

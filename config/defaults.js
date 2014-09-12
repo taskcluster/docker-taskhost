@@ -15,8 +15,15 @@ module.exports = {
   taskclusterLogImage: 'taskcluster/logserve',
 
   papertrail: {
+    // Papertrail is system wide not only in the docker code so we need to wire
+    // it up outside of this process but also need to register worker groups
+    // when we startup...
+    systemId: process.env.PAPERTRAIL_SYSTEM_ID,
+
     // Papertrail destination port used to determine the log stream.
     desintation: { port: null },
+
+    // Authentication.
     token: process.env.PAPERTRAIL_API_TOKEN
   },
 

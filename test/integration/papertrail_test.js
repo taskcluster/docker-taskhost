@@ -6,6 +6,11 @@ suite('papertrail', function() {
 
   var co = require('co');
   var waitForEvent = require('../../lib/wait_for_event');
+  var uuid = require('uuid');
+  var settings = require('../settings');
+
+  // Ensure we don't leave behind our test configurations.
+  teardown(settings.cleanup);
 
   // We need to use the docker worker host here so the network connection code
   // actually runs...
@@ -13,24 +18,41 @@ suite('papertrail', function() {
   var TestWorker = require('../testworker');
   var Papertrail = require('papertrail');
 
+  var system, client;
+  setup(co(function* () {
+    client = new Papertrail({ token: process.env.PAPERTRAIL_API_TOKEN });
+    var destinations = yield client.listLogDestinations();
+    system = yield client.registerSystem({
+      system: {
+        name: 'test-' + uuid.v4()
+      },
+      destination_id: destinations[0].id
+    });
+  }));
+
+  teardown(co(function* () {
+    yield client.deleteSystem(system.id);
+  }));
+
   test('issue a request to taskcluster via the proxy', co(function* () {
-    var client = new Papertrail({ token: process.env.PAPERTRAIL_API_TOKEN });
     var worker = new TestWorker(DockerWorker);
+
+    settings.configure({
+      papertrail: { systemId: system.id }
+    });
 
     var results = yield [
       worker.launch(),
-      waitForEvent(worker, 'remote logging to system'),
       waitForEvent(worker, 'remote logging to groups')
     ];
 
-    var system = results[1];
-    var groups = results[2];
+    var groups = results[1];
 
-    yield client.getSystem(system.id);
     for (var key in groups) {
       var id = groups[key].id;
       if (!id) continue
-      yield client.getGroup(groups[key].id);
+      var group = yield client.getGroup(groups[key].id);
+      assert.equal(group.systems[0].id, system.id);
     }
     yield worker.terminate();
   }));
