@@ -10,8 +10,7 @@ suite('setting env variables', function() {
         env:            { WOOTBAR: expected },
         command:        ['/bin/bash', '-c', 'echo $WOOTBAR'],
         features: {
-          bufferLog:    true,
-          azureLiveLog: false
+          bufferLog:    true
         },
         maxRunTime: 5 * 60
       }

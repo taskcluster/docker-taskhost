@@ -189,8 +189,6 @@ suite('artifact extration tests', function() {
         ),
         features: {
           bufferLog: true,
-          azureLivelog: false,
-          extractArtifacts: true,
           localLiveLog: false
         },
         artifacts: {

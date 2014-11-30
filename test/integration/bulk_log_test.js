@@ -16,7 +16,6 @@ suite('logging to artifact', function() {
         ],
         features: {
           localLiveLog: false,
-          azureLiveLog: false,
           bulkLog: true
         },
         maxRunTime: 5 * 60

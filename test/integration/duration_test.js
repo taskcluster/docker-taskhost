@@ -11,8 +11,7 @@ suite('Task duration stats', function() {
           'sleep 1'
         ),
         features: {
-          bufferLog:    true,
-          azureLiveLog: false
+          bufferLog:    true
         },
         maxRunTime: 5 * 60
       }
