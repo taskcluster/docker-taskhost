@@ -22,6 +22,35 @@ module.exports = {
   "id": "http://schemas.taskcluster.net/docker-worker/v1/payload.json#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "definitions": {
+
+    "service": {
+      "type": "object",
+      "properties": {
+        "alias": {
+          "alias": "Alias to use when linking to given docker image",
+          "type": "string"
+        },
+        "image": {
+          "title": "Docker image",
+          "type": "string",
+        },
+        "command": {
+          "title": "Docker command to run (see docker api).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Example: `['/bin/bash', '-c', 'ls']`."
+        },
+        "env": {
+          "title": "Environment variable mappings.",
+          "description": "Example: ```\n{\n  \"PATH\": '/borked/path' \n  \"ENV_NAME\": \"VALUE\" \n}\n```",
+          "type": "object"
+        },
+      },
+      "required": ["image", "alias"]
+    },
+
     "artifact": {
       "type": "object",
       "properties": {
@@ -96,6 +125,13 @@ module.exports = {
         "$ref": "#/definitions/artifact"
       }
     },
-    "features": featureSchema
+    "features": featureSchema,
+
+    "services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/service"
+      }
+    }
   }
 }
