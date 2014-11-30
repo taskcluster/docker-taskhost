@@ -15,7 +15,8 @@ suite('logging to artifact', function() {
           'for i in {1..1000}; do echo "Hello Number $i"; done;'
         ],
         features: {
-          liveLog: true,
+          localLiveLog: false,
+          azureLiveLog: false,
           bulkLog: true
         },
         maxRunTime: 5 * 60
@@ -31,15 +32,11 @@ suite('logging to artifact', function() {
     }
 
     var content = yield getArtifact(
-      result, result.artifacts['public/logs/terminal_bulk.log.gz'].name
+      result, result.artifacts['public/logs/live.log.gz'].name
     );
 
     assert.ok(
       content.indexOf(log) !== -1, 'bulk log contains correct number of lines'
-    );
-
-    assert.equal(
-      content, result.log, 'livelog and bulk log should be identical'
     );
   }));
 });
