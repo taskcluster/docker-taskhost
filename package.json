@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/lightsofapollo/docker-worker",
   "dependencies": {
-    "azure-storage": "^0.3.0",
     "co": "^3.1.0",
     "co-event": "^0.1.0",
     "co-fs": "^1.2.0",
@@ -51,9 +50,8 @@
     "superagent": "^0.18.0",
     "superagent-promise": "^0.1.1",
     "tar-stream": "^0.4.4",
-    "taskcluster-azure-blobstream": "^0.3.0",
     "taskcluster-base": "^0.4.10",
-    "taskcluster-client": "^0.17.5",
+    "taskcluster-client": "^0.17.11",
     "temporary": "0.0.8",
     "time-chunked-stream": "^1.0.0",
     "uuid": "^1.4.1",
