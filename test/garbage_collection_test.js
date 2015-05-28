@@ -54,7 +54,7 @@ suite('garbage collection tests', function () {
       log: log,
       docker: docker,
       interval: 2 * 1000,
-      taskListener: { availableCapacity: 0 },
+      taskListener: { availableCapacity: () => { return 0 } },
     });
 
     var container = yield docker.createContainer({Image: IMAGE});
@@ -109,7 +109,7 @@ suite('garbage collection tests', function () {
       log: log,
       docker: docker,
       interval: 2 * 1000,
-      taskListener: { availableCapacity: 0 },
+      taskListener: { availableCapacity: () => { return 0 } },
     });
 
       var container = yield docker.createContainer({Image: IMAGE});
