@@ -1,7 +1,5 @@
-import fs from 'fs';
+import assert from 'assert';
 import slugid from 'slugid';
-import co from 'co';
-import taskcluster from 'taskcluster-client';
 import Docker from '../../lib/docker';
 import dockerUtils from 'dockerode-process/utils';
 import DockerWorker from '../dockerworker';
@@ -38,7 +36,7 @@ suite('Spot Node Termination', () => {
     }
   });
 
-  test("abort running task", async () => {
+  test('abort running task', async () => {
     let task = {
       payload: {
         image: IMAGE,
@@ -50,9 +48,14 @@ suite('Spot Node Termination', () => {
     };
     let taskId = slugid.v4();
     worker = new TestWorker(DockerWorker);
-    worker.on('task run', () => { settings.nodeTermination(); });
-    let launch = await worker.launch();
-    let result = await worker.postToQueue(task, taskId);
+    await worker.launch();
+    worker.on('task run', async () => {
+      await sleep(5000);
+      settings.nodeTermination();
+    });
+
+    await worker.postToQueue(task, taskId);
+
     let taskStatus = await worker.queue.status(taskId);
 
     assert.equal(taskStatus.status.runs[0].state, 'exception',
@@ -66,26 +69,38 @@ suite('Spot Node Termination', () => {
     let log = await getArtifact(
       { taskId: taskId, runId: 0 }, 'public/logs/live_backing.log'
     );
+    log = log.replace(/\n/gm, ' ');
 
-    assert.equal(log.indexOf('Artifact not found'), -1,
+    assert.ok(!log.includes('Artifact not found'),
       'Backing log should have been created when task was aborted'
     );
 
-    assert.notEqual(log.indexOf('Hello'), -1, 'Task should have started before being aborted.')
-    assert.equal(log.indexOf('Done'), -1, 'Task should have been aborted before finishing')
-    assert.notEqual(log.indexOf('Task has been aborted prematurely. Reason: worker-shutdown'), -1,
-      'Log should indicate that task was aborted with a reason of "worker-shutdown"'
+    assert.ok(
+      log.includes('Hello'),
+      'Task should have started before being aborted.'
+    );
+
+    assert.ok(
+      !log.includes('Done'),
+      'Task should have been aborted before finishing'
+    );
+
+    assert.ok(
+      log.includes(
+        'Task has been aborted prematurely. Reason: Received spot termination notice.'
+      ),
+      'Log should indicate that task was aborted with the appropriate reason'
     );
   });
 
-  test("abort task while pulling image", async () => {
+  test('abort task while pulling image', async () => {
     // Purposely using a large image that would take awhile to download.  Also,
     // this might need to be adjusted later to have a meaningful test.  If an
     // image is removed but the intermediate layers are used elsewhere, the image
     // is just untagged.  When pull image happens, the layers are there so there is
     // nothign to downloading causing the node termination notice to not happen
     // until after the task has started usually.
-    let image = 'ubuntu:12.10'
+    let image = 'ubuntu:12.10';
     await dockerUtils.removeImageIfExists(docker, image);
     let task = {
       payload: {
@@ -96,13 +111,17 @@ suite('Spot Node Termination', () => {
         maxRunTime: 60 * 60
       }
     };
+
     let taskId = slugid.v4();
     worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
     worker.on('pull image', (msg) => {
       if (msg.image === image) { settings.nodeTermination(); }
     });
-    let launch = await worker.launch();
-    let result = await worker.postToQueue(task, taskId);
+
+    await worker.postToQueue(task, taskId);
+
     let taskStatus = await worker.queue.status(taskId);
 
     assert.equal(taskStatus.status.runs[0].state, 'exception',
@@ -116,14 +135,22 @@ suite('Spot Node Termination', () => {
     let log = await getArtifact(
       { taskId: taskId, runId: 0 }, 'public/logs/live_backing.log'
     );
+    log = log.replace(/\n/gm, ' ');
 
-    assert.equal(log.indexOf('Artifact not found'), -1,
+    assert.ok(!log.includes('Artifact not found'),
       'Backing log should have been created when task was aborted'
     );
 
-    assert.equal(log.indexOf('Hello'), -1, 'Task should not have started after being aborted.')
-    assert.notEqual(log.indexOf('Task has been aborted prematurely. Reason: worker-shutdown'), -1,
-      'Log should indicate that task was aborted with a reason of "worker-shutdown"'
+    assert.ok(
+      !log.includes('Hello'),
+      'Task should not have started after being aborted.'
+    );
+
+    assert.ok(
+      !log.includes(
+        'Task has been aborted prematurely. Reason: Received spot\n termination notice'
+      ),
+      'Log should indicate that task was aborted with the appropriate reason'
     );
   });
 
