@@ -53,8 +53,8 @@ suite('balrog vpn proxy', () => {
 
   test('missing feature scope', async () => {
     let error;
-    worker.on('task aborted', (message) => {
-      error = message.err
+    worker.on('abort task', (message) => {
+      error = message.reason;
     });
 
     let result = await worker.postToQueue({
@@ -75,6 +75,7 @@ suite('balrog vpn proxy', () => {
     // Need to rely on looking at the logging from the worker because the logserve
     // container might not have created a logging artifact in time because of where
     // this check takes place.
+    assert.ok(error, 'Error message is missing');
     assert.ok(
       error.indexOf('Insufficient scopes to use') !== -1,
       'Error does not contain correct message'
