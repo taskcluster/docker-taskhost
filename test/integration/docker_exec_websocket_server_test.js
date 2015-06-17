@@ -24,7 +24,7 @@ suite('use docker exec websocket server', () => {
   	let task = {
       payload: {
         image: 'taskcluster/test-ubuntu',
-        command: cmd('sleep 60'),
+        command: cmd('sleep 40'),
         maxRunTime: 2 * 60,
         features: {
           interactive: true
@@ -50,13 +50,10 @@ suite('use docker exec websocket server', () => {
         passed = true;
         debug('test finished!');
       });
-    }, 30000);
+    }, 20000);
     setTimeout(() => {
       assert(passed, 'returning cat message not recieved');
-    }, 35000);
-    debug('waiting for')
-    resultPromise.then(() => debug('whats wrong with this thing'));
+    }, 25000);
     await resultPromise;
-    debug('godot')
   });
 });
