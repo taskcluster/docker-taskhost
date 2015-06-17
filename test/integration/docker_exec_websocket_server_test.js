@@ -5,7 +5,7 @@ var cmd = require('./helper/cmd');
 var debug = require('debug')('docker-worker:test:docker_exec_websocket_server_test')
 // var waitForEvent = require('../../lib/wait_for_event');
 var slugid = require('slugid');
-// var DockerExecClient = require('docker-exec-websocket-server').DockerExecClient;
+var DockerExecClient = require('docker-exec-websocket-server').DockerExecClient;
 
 suite('use docker exec websocket server', () => {
   let worker;
@@ -33,23 +33,25 @@ suite('use docker exec websocket server', () => {
     };
 
     let resultPromise = worker.postToQueue(task);
-    var client = new DockerExecClient({
-      tty: false,
-      command: 'sh',
-      url: 'ws://localhost:40836/a',
-    });
-    await client.execute();
-    var buf1 = new Uint8Array([0xfa, 0xff, 0x0a]);
-    client.stdin.write(buf1);
     var passed = false;
-    client.stdout.on('data', (message) => {
-      var buf = new Buffer([0xfa, 0xff, 0x0a]);
-      assert(buf.compare(message) === 0, 'message wrong!');
-      passed = true;
-    });
+    setTimeout(async () => {
+      var client = new DockerExecClient({
+        tty: false,
+        command: 'sh',
+        url: 'ws://localhost:40836/a',
+      });
+      await client.execute();
+      var buf1 = new Uint8Array([0xfa, 0xff, 0x0a]);
+      client.stdin.write(buf1);
+      client.stdout.on('data', (message) => {
+        var buf = new Buffer([0xfa, 0xff, 0x0a]);
+        assert(buf.compare(message) === 0, 'message wrong!');
+        passed = true;
+      });
+    }, 10000);
     setTimeout(() => {
       assert(passed, 'returning cat message not recieved');
     }, 5000);
     await resultPromise;
   });
- });
+});
