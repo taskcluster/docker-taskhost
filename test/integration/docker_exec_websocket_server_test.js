@@ -24,20 +24,21 @@ suite('use docker exec websocket server', () => {
   	let task = {
       payload: {
         image: 'taskcluster/test-ubuntu',
-        command: cmd('sleep 30'),
-        maxRunTime: 40,
+        command: cmd('sleep 60'),
+        maxRunTime: 2 * 60,
         features: {
           interactive: true
         }
       }
     };
+    debug('posting to queue');
 
     let resultPromise = worker.postToQueue(task);
     var passed = false;
     setTimeout(async () => {
       var client = new DockerExecClient({
         tty: false,
-        command: 'sh',
+        command: 'cat',
         url: 'ws://localhost:40836/a',
       });
       await client.execute();
@@ -47,11 +48,15 @@ suite('use docker exec websocket server', () => {
         var buf = new Buffer([0xfa, 0xff, 0x0a]);
         assert(buf.compare(message) === 0, 'message wrong!');
         passed = true;
+        debug('test finished!');
       });
-    }, 10000);
+    }, 30000);
     setTimeout(() => {
       assert(passed, 'returning cat message not recieved');
-    }, 5000);
+    }, 35000);
+    debug('waiting for')
+    resultPromise.then(() => debug('whats wrong with this thing'));
     await resultPromise;
+    debug('godot')
   });
 });
