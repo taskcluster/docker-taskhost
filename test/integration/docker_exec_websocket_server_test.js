@@ -27,15 +27,29 @@ suite('use docker exec websocket server', () => {
         command: cmd('sleep 30'),
         maxRunTime: 40,
         features: {
-          websocketServer: true
+          interactive: true
         }
       }
     };
 
     let result = await worker.postToQueue(task);
-    // var client = new DockerExecClient({
-
-    // })
+    var client = new DockerExecClient({
+      tty: false,
+      command: 'sh',
+      url: 'ws://localhost:40836/a',
+    });
+    await client.execute();
+    var buf1 = new Uint8Array([0xfa, 0xff, 0x0a]);
+    client.stdin.write(buf1);
+    var passed = false;
+    client.stdout.on('data', (message) => {
+      var buf = new Buffer([0xfa, 0xff, 0x0a]);
+      assert(buf.compare(message) === 0, 'message wrong!');
+      passed = true;
+    });
+    setTimeout(() => {
+      assert(passed, 'returning cat message not recieved');
+    }, 5000);
     debug(result);
   });
  });
