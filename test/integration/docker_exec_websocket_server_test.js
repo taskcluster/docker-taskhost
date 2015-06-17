@@ -32,7 +32,7 @@ suite('use docker exec websocket server', () => {
       }
     };
 
-    let result = await worker.postToQueue(task);
+    let resultPromise = worker.postToQueue(task);
     var client = new DockerExecClient({
       tty: false,
       command: 'sh',
@@ -50,6 +50,6 @@ suite('use docker exec websocket server', () => {
     setTimeout(() => {
       assert(passed, 'returning cat message not recieved');
     }, 5000);
-    debug(result);
+    await resultPromise;
   });
  });
