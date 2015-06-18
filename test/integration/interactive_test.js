@@ -2,7 +2,7 @@ var DockerWorker = require('../dockerworker');
 var TestWorker = require('../testworker');
 var assert = require('assert');
 var cmd = require('./helper/cmd');
-var debug = require('debug')('docker-worker:test:docker_exec_websocket_server_test')
+var debug = require('debug')('docker-worker:test:interactive-test')
 var slugid = require('slugid');
 var DockerExecClient = require('docker-exec-websocket-server').DockerExecClient;
 var request = require('superagent-promise');
@@ -78,7 +78,7 @@ suite('use docker exec websocket server', () => {
       passed = true;
       debug('test finished!');
     });
-    
+
     await new Promise(accept => client.socket.once('close', accept));
     assert(passed);
   });
