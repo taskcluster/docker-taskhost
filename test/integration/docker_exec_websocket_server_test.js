@@ -26,7 +26,7 @@ suite('use docker exec websocket server', () => {
     let taskId = slugid.v4();
   	let task = {
       payload: {
-        image: 'taskcluster/test-ubuntu',
+        image: 'busybox',
         command: cmd('sleep 40'),
         maxRunTime: 2 * 60,
         features: {
@@ -41,18 +41,18 @@ suite('use docker exec websocket server', () => {
     let resultPromise = worker.postToQueue(task, taskId);
     var passed = false;
     setTimeout(async () => {
-      var getWith303Redirect = async (url) => {
+      var getWithoutRedirect = async (url) => {
         var res;
         try {
           res = await request.get(url).redirects(0).end();
         }
-        catch(err) {
+        catch (err) {
           res = err.response;
         }
         return res.headers.location;
       };
 
-      var url = await getWith303Redirect(worker.queue.buildSignedUrl(
+      var url = await getWithoutRedirect(worker.queue.buildSignedUrl(
         worker.queue.getLatestArtifact,
         taskId,
         'interactive',
@@ -64,6 +64,7 @@ suite('use docker exec websocket server', () => {
         tty: false,
         command: ['cat'],
         url: url,
+        wsopts: {rejectUnauthorized: false}
       });
       await client.execute();
 
@@ -77,6 +78,7 @@ suite('use docker exec websocket server', () => {
         debug('test finished!');
       });
     }, 20000);
+
     var promise = new Promise((resolve, reject) => {
       setTimeout(() => {
         if (passed) {
