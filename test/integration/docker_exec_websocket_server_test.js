@@ -6,6 +6,8 @@ var debug = require('debug')('docker-worker:test:docker_exec_websocket_server_te
 // var waitForEvent = require('../../lib/wait_for_event');
 var slugid = require('slugid');
 var DockerExecClient = require('docker-exec-websocket-server').DockerExecClient;
+var request = require('superagent-promise');
+var Promise = require('promise');
 
 suite('use docker exec websocket server', () => {
   let worker;
@@ -21,6 +23,7 @@ suite('use docker exec websocket server', () => {
     }
   });
   test('cat', async () => {
+    let taskId = slugid.v4();
   	let task = {
       payload: {
         image: 'taskcluster/test-ubuntu',
@@ -33,27 +36,57 @@ suite('use docker exec websocket server', () => {
     };
     debug('posting to queue');
 
-    let resultPromise = worker.postToQueue(task);
+    var client;
+
+    let resultPromise = worker.postToQueue(task, taskId);
     var passed = false;
     setTimeout(async () => {
-      var client = new DockerExecClient({
+      var getWith303Redirect = async (url) => {
+        var res;
+        try {
+          res = await request.get(url).redirects(0).end();
+        }
+        catch(err) {
+          res = err.response;
+        }
+        return res.headers.location;
+      };
+
+      var url = await getWith303Redirect(worker.queue.buildSignedUrl(
+        worker.queue.getLatestArtifact,
+        taskId,
+        'interactive',
+        {expiration: 60 * 5}));
+
+      assert(url, 'artifact not found');
+
+      client = new DockerExecClient({
         tty: false,
-        command: 'cat',
-        url: 'ws://localhost:40836/a',
+        command: ['cat'],
+        url: url,
       });
       await client.execute();
-      var buf1 = new Uint8Array([0xfa, 0xff, 0x0a]);
-      client.stdin.write(buf1);
+
+      var buf = new Buffer([0xfa, 0xff, 0x0a]);
+      client.stdin.write(buf);
       client.stdout.on('data', (message) => {
-        var buf = new Buffer([0xfa, 0xff, 0x0a]);
-        assert(buf.compare(message) === 0, 'message wrong!');
+        assert(buf[0] === message[0], 'message wrong!');
+        assert(buf[1] === message[1], 'message wrong!');
+        assert(buf[2] === message[2], 'message wrong!');
         passed = true;
         debug('test finished!');
       });
     }, 20000);
-    setTimeout(() => {
-      assert(passed, 'returning cat message not recieved');
-    }, 25000);
-    await resultPromise;
+    var promise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (passed) {
+          resolve();
+        } else {
+          reject();
+        };
+      }, 30000);
+    });
+    debug('test setup');
+    await promise;
   });
 });
