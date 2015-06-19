@@ -73,6 +73,7 @@ suite('use docker exec websocket server', () => {
 
     var buf = new Buffer([0xfa, 0xff, 0x0a]);
     client.stdin.write(buf);
+    //message is small enough that it should be returned in one chunk
     client.stdout.on('data', (message) => {
       assert(buf[0] === message[0], 'message wrong!');
       assert(buf[1] === message[1], 'message wrong!');
@@ -90,7 +91,7 @@ suite('use docker exec websocket server', () => {
     let task = {
       payload: {
         image: 'busybox',
-        command: cmd('sleep 100'),
+        command: cmd('sleep 60'),
         maxRunTime: 2 * 60,
         features: {
           interactive: true
@@ -136,14 +137,16 @@ suite('use docker exec websocket server', () => {
     const TEST_BUF_SIZE = 1024 * 1024;
 
     var buf = await Promise.denodeify(crypto.pseudoRandomBytes)(TEST_BUF_SIZE);
+    // make sure the last character is a newline
     buf[TEST_BUF_SIZE - 1] = 0x0a;
-    buf[4] = 0x00;
     var pointer = 0;
     client.stdin.write(buf);
     client.stdout.on('data', (message) => {
+      //checks each byte then increments the pointer
       for(let i = 0; i < message.length; i++) {
         if(message[i] !== buf[pointer++])
-          throw new Error('byte at messages ' + i + ' which is ' + message[i] + ' of message total len ' + message.length + 
+          throw new Error('byte at messages ' + i + ' which is ' + message[i]
+            + ' of message total len ' + message.length + 
             '\ndoes not match bufs ' + pointer - 1);
       }
       debug(pointer);
