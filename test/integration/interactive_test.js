@@ -1,14 +1,15 @@
-var assert = require('assert');
-var base = require('taskcluster-base');
-var cmd = require('./helper/cmd');
-var crypto = require('crypto');
-var debug = require('debug')('docker-worker:test:interactive-test')
-var DockerExecClient = require('docker-exec-websocket-server').DockerExecClient;
-var DockerWorker = require('../dockerworker');
-var TestWorker = require('../testworker');
-var Promise = require('promise');
-var request = require('superagent-promise');
-var slugid = require('slugid');
+import assert from 'assert';
+import base from 'taskcluster-base';
+import cmd from './helper/cmd';
+import crypto from 'crypto';
+import {DockerExecClient} from 'docker-exec-websocket-server';
+import DockerWorker from '../dockerworker';
+import TestWorker from '../testworker';
+import Promise from 'promise';
+import request from 'superagent-promise';
+import slugid from 'slugid';
+import Debug from 'debug';
+let debug = Debug('docker-worker:test:interactive-test');
 
 suite('use docker exec websocket server', () => {
   let worker;
@@ -47,10 +48,10 @@ suite('use docker exec websocket server', () => {
     var passed = false;
 
     var signedUrl = worker.queue.buildSignedUrl(
-        worker.queue.getLatestArtifact,
-        taskId,
-        'private/mozilla/interactive.sock',
-        {expiration: 60 * 5});
+    worker.queue.getLatestArtifact,
+    taskId,
+    'private/mozilla/interactive.sock',
+    {expiration: 60 * 5});
 
     var url;
     await base.testing.poll(async () => {
@@ -101,10 +102,10 @@ suite('use docker exec websocket server', () => {
     var passed = false;
 
     var signedUrl = worker.queue.buildSignedUrl(
-        worker.queue.getLatestArtifact,
-        taskId,
-        'private/mozilla/interactive.sock',
-        {expiration: 60 * 5});
+      worker.queue.getLatestArtifact,
+      taskId,
+      'private/mozilla/interactive.sock',
+      {expiration: 60 * 5});
 
     var url;
     await base.testing.poll(async () => {
