@@ -7,15 +7,18 @@ import DockerWorker from '../dockerworker';
 import TestWorker from '../testworker';
 import Promise from 'promise';
 import request from 'superagent-promise';
+import * as settings from '../settings';
 import slugid from 'slugid';
 import Debug from 'debug';
-let debug = Debug('docker-worker:test:interactive-test');
 
 suite('use docker exec websocket server', () => {
+  let debug = Debug('docker-worker:test:interactive-test');
+
   let worker;
   setup(async () => {
     worker = new TestWorker(DockerWorker);
     await worker.launch();
+    settings.cleanup();
   });
 
   teardown(async () => {
@@ -23,10 +26,11 @@ suite('use docker exec websocket server', () => {
       await worker.terminate();
       worker = null;
     }
+    settings.cleanup();
   });
 
   async function getWithoutRedirect (url) {
-    var res = await request.get(url).redirects(0).end();
+    let res = await request.get(url).redirects(0).end();
     return res.headers.location;
   };
 
@@ -45,22 +49,22 @@ suite('use docker exec websocket server', () => {
     debug('posting to queue');
     worker.postToQueue(task, taskId);
     
-    var passed = false;
+    let passed = false;
 
-    var signedUrl = worker.queue.buildSignedUrl(
+    let signedUrl = worker.queue.buildSignedUrl(
     worker.queue.getLatestArtifact,
     taskId,
     'private/mozilla/interactive.sock',
     {expiration: 60 * 5});
 
-    var url;
+    let url;
     await base.testing.poll(async () => {
       url = await getWithoutRedirect(signedUrl);
       assert(url, 'artifact not found');
     }, 20, 1000);
 
     //for testing, we don't care about https verification
-    var client = new DockerExecClient({
+    let client = new DockerExecClient({
       tty: false,
       command: ['cat'],
       url: url,
@@ -68,7 +72,7 @@ suite('use docker exec websocket server', () => {
     });
     await client.execute();
 
-    var buf = new Buffer([0xfa, 0xff, 0x0a]);
+    let buf = new Buffer([0xfa, 0xff, 0x0a]);
     client.stdin.write(buf);
     //message is small enough that it should be returned in one chunk
     client.stdout.on('data', (message) => {
@@ -81,7 +85,7 @@ suite('use docker exec websocket server', () => {
     });
 
     await new Promise(accept => client.socket.once('close', accept));
-    assert(passed);
+    assert(passed,'message not recieved');
   });
 
   test('cat stress test', async () => {
@@ -99,22 +103,22 @@ suite('use docker exec websocket server', () => {
     debug('posting to queue');
     worker.postToQueue(task, taskId);
     
-    var passed = false;
+    let passed = false;
 
-    var signedUrl = worker.queue.buildSignedUrl(
+    let signedUrl = worker.queue.buildSignedUrl(
       worker.queue.getLatestArtifact,
       taskId,
       'private/mozilla/interactive.sock',
       {expiration: 60 * 5});
 
-    var url;
+    let url;
     await base.testing.poll(async () => {
       url = await getWithoutRedirect(signedUrl);
       assert(url, 'artifact not found');
     }, 20, 1000);
 
     //for testing, we don't care about https verification
-    var client = new DockerExecClient({
+    let client = new DockerExecClient({
       tty: false,
       command: ['cat'],
       url: url,
@@ -124,10 +128,8 @@ suite('use docker exec websocket server', () => {
 
     const TEST_BUF_SIZE = 1024 * 1024;
 
-    var buf = await Promise.denodeify(crypto.pseudoRandomBytes)(TEST_BUF_SIZE);
-    // make sure the last character is a newline
-    buf[TEST_BUF_SIZE - 1] = 0x0a;
-    var pointer = 0;
+    let buf = await Promise.denodeify(crypto.pseudoRandomBytes)(TEST_BUF_SIZE);
+    let pointer = 0;
     client.stdin.write(buf);
     client.stdout.on('data', (message) => {
       //checks each byte then increments the pointer
@@ -145,6 +147,34 @@ suite('use docker exec websocket server', () => {
     });
 
     await new Promise(accept => client.socket.once('close', accept));
-    assert(passed);
+    assert(passed,'only ' + pointer + ' bytes recieved');
+  });
+
+  test('started hook fails gracefully on crash', async () => {
+    settings.configure({
+      ssl: {
+        certificate: '/some/path/ssl.cert',
+        key: '/some/path/ssl.key'
+      }
+    });
+
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
+    let taskId = slugid.v4();
+    let task = {
+      payload: {
+        image: 'busybox',
+        command: cmd('sleep 60'),
+        maxRunTime: 2 * 60,
+        features: {
+          interactive: true
+        }
+      }
+    };
+    debug('posting to queue');
+    let res = await worker.postToQueue(task, taskId);
+    assert(/\[taskcluster\] Error: Task was aborted because states could not be started\nsuccessfully\./
+      .test(res.log));
   });
 });
