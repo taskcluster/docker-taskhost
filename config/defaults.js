@@ -184,5 +184,9 @@ module.exports = {
     password: process.env.TESTDROID_PASSWORD
   },
 
-  dockerWorkerPrivateKey: '/etc/docker-worker-priv.pem'
+  dockerWorkerPrivateKey: '/etc/docker-worker-priv.pem',
+
+  interactive: {
+    ssl: true
+  }
 };
