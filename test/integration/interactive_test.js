@@ -24,6 +24,11 @@ suite('use docker exec websocket server', () => {
     }
   });
 
+  async function getWithoutRedirect (url) {
+    var res = await request.get(url).redirects(0).end();
+    return res.headers.location;
+  };
+
   test('cat', async () => {
     let taskId = slugid.v4();
   	let task = {
@@ -37,20 +42,10 @@ suite('use docker exec websocket server', () => {
       }
     };
     debug('posting to queue');
-    var resultPromise = worker.postToQueue(task, taskId);
+    worker.postToQueue(task, taskId);
     
     var passed = false;
 
-    async function getWithoutRedirect (url) {
-      var res;
-      try {
-        res = await request.get(url).redirects(0).end();
-      }
-      catch (err) {
-        res = err.response; //do something better w/ the error here
-      }
-      return res.headers.location;
-    };
     var signedUrl = worker.queue.buildSignedUrl(
         worker.queue.getLatestArtifact,
         taskId,
@@ -101,20 +96,10 @@ suite('use docker exec websocket server', () => {
       }
     };
     debug('posting to queue');
-    var resultPromise = worker.postToQueue(task, taskId);
+    worker.postToQueue(task, taskId);
     
     var passed = false;
 
-    async function getWithoutRedirect (url) {
-      var res;
-      try {
-        res = await request.get(url).redirects(0).end();
-      }
-      catch (err) {
-        res = err.response; //do something better w/ the error here
-      }
-      return res.headers.location;
-    };
     var signedUrl = worker.queue.buildSignedUrl(
         worker.queue.getLatestArtifact,
         taskId,
