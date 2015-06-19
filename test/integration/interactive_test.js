@@ -23,6 +23,7 @@ suite('use docker exec websocket server', () => {
       worker = null;
     }
   });
+
   test('cat', async () => {
     let taskId = slugid.v4();
   	let task = {
@@ -86,6 +87,7 @@ suite('use docker exec websocket server', () => {
     await new Promise(accept => client.socket.once('close', accept));
     assert(passed);
   });
+
   test('cat stress test', async () => {
     let taskId = slugid.v4();
     let task = {
@@ -149,7 +151,6 @@ suite('use docker exec websocket server', () => {
             + ' of message total len ' + message.length + 
             '\ndoes not match bufs ' + pointer - 1);
       }
-      debug(pointer);
       if (pointer === TEST_BUF_SIZE) {
         passed = true;
         debug('test finished!');
