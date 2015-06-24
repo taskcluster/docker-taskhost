@@ -187,6 +187,9 @@ module.exports = {
   dockerWorkerPrivateKey: '/etc/docker-worker-priv.pem',
 
   interactive: {
-    ssl: true
+    ssl: true,
+    //time, in seconds, between end of task and end of interactive session
+    //could be shorter due to worker node shutdown
+    expiration: 60 * 60
   }
 };
