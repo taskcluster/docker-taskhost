@@ -48,6 +48,7 @@ suite('use docker exec websocket server', () => {
     };
     debug('posting to queue');
     worker.postToQueue(task, taskId);
+    debug('posted to queue');
     
     let passed = false;
 
@@ -88,7 +89,7 @@ suite('use docker exec websocket server', () => {
     assert(passed,'message not recieved');
   });
 
-  test('cat stress test', async () => {
+  /*test('cat stress test', async () => {
     let taskId = slugid.v4();
     let task = {
       payload: {
@@ -148,9 +149,84 @@ suite('use docker exec websocket server', () => {
 
     await new Promise(accept => client.socket.once('close', accept));
     assert(passed,'only ' + pointer + ' bytes recieved');
+  });*/
+
+  test('expires', async () => {
+    settings.configure({
+      interactive: {
+        ssl: true,
+        expiration: 10
+      }
+    });
+
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
+    let taskId = slugid.v4();
+    let task = {
+      payload: {
+        image: 'busybox',
+        command: cmd('sleep 1'),
+        maxRunTime: 2 * 60,
+        features: {
+          interactive: true
+        }
+      }
+    };
+    debug('posting to queue');
+    worker.postToQueue(task, taskId);
+
+    let signedUrl = worker.queue.buildSignedUrl(
+      worker.queue.getLatestArtifact,
+      taskId,
+      'private/mozilla/interactive.sock',
+      {expiration: 60 * 5});
+
+    let url;
+    await base.testing.poll(async () => {
+      url = await getWithoutRedirect(signedUrl);
+      assert(url, 'artifact not found');
+    }, 20, 1000);
+
+    let client = new DockerExecClient({
+      tty: false,
+      command: ['pwd'],
+      url: url,
+      wsopts: {rejectUnauthorized: false}
+    });
+    await base.testing.sleep(5000);
+    let exited = false;
+
+    //check for proper exit
+    //should still be alive here
+    await client.execute();
+    client.stdout.on('data', (message) => {
+      assert(message[0] === 0x2f); // is a slash, as expected of pwd
+      exited = true;
+    });
+    
+
+    await base.testing.sleep(10000);
+    //should be dead here
+    let dead = true;
+    let failClient = new DockerExecClient({
+      tty: false,
+      command: ['echo'],
+      url: url,
+      wsopts: {rejectUnauthorized: false}
+    });
+    failClient.on('resumed', () => {
+      dead = false;
+    });
+    await failClient.execute();
+    await base.testing.sleep(3000);
+
+    assert(dead, 'interactive session still available when it should have expired');
+    assert(exited, 'interactive session failed to exit');
+    settings.cleanup();
   });
 
-  test('started hook fails gracefully on crash', async () => {
+  /*test('started hook fails gracefully on crash', async () => {
     settings.configure({
       ssl: {
         certificate: '/some/path/ssl.cert',
@@ -176,5 +252,5 @@ suite('use docker exec websocket server', () => {
     let res = await worker.postToQueue(task, taskId);
     assert(/\[taskcluster\] Error: Task was aborted because states could not be started\nsuccessfully\./
       .test(res.log));
-  });
+  });*/
 });
