@@ -67,23 +67,32 @@ suite('use docker exec websocket server', () => {
     //for testing, we don't care about https verification
     let client = new DockerExecClient({
       tty: false,
-      command: ['cat'],
+      command: ['/bin/sh'],
       url: url,
       wsopts: {rejectUnauthorized: false}
     });
     await client.execute();
+    debug('client executed');
 
-    let buf = new Buffer([0xfa, 0xff, 0x0a]);
-    client.stdin.write(buf);
-    //message is small enough that it should be returned in one chunk
+    // let buf = new Buffer([0xfa, 0xff, 0x0a]);
+    // client.stdin.write(buf);
+    client.stdin.write('cd /tmp/.taskcluster_utils\nls -la\ncd /tmp\nls -la\n');
+    client.stderr.on('data', (message) => {
+      debug(message.toString());
+    })
     client.stdout.on('data', (message) => {
+      debug(message.toString());
+    });
+/*    //message is small enough that it should be returned in one chunk
+    client.stdout.on('data', (message) => {
+      debug(message.toString());
       assert(buf[0] === message[0], 'message wrong!');
       assert(buf[1] === message[1], 'message wrong!');
       assert(buf[2] === message[2], 'message wrong!');
       passed = true;
       debug('test finished!');
       client.close();
-    });
+    });*/
 
     await new Promise(accept => client.socket.once('close', accept));
     assert(passed,'message not recieved');
@@ -151,7 +160,7 @@ suite('use docker exec websocket server', () => {
     assert(passed,'only ' + pointer + ' bytes recieved');
   });*/
 
-  test('expires', async () => {
+/*  test('expires', async () => {
     settings.configure({
       interactive: {
         ssl: true,
@@ -224,7 +233,7 @@ suite('use docker exec websocket server', () => {
     assert(dead, 'interactive session still available when it should have expired');
     assert(exited, 'interactive session failed to exit');
     settings.cleanup();
-  });
+  });*/
 
   /*test('started hook fails gracefully on crash', async () => {
     settings.configure({
