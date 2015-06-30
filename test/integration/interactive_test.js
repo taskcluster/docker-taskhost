@@ -35,6 +35,12 @@ suite('use docker exec websocket server', () => {
   };
 
   test('cat', async () => {
+    settings.configure({
+      interactive: {
+        ssl: true,
+        expiration: 10
+      }
+    });
     let taskId = slugid.v4();
   	let task = {
       payload: {
@@ -85,7 +91,6 @@ suite('use docker exec websocket server', () => {
     client.stdin.write(buf);
     //message is small enough that it should be returned in one chunk
     client.stdout.on('data', (message) => {
-      debug(message.toString());
       assert(buf[0] === message[0], 'message wrong!');
       assert(buf[1] === message[1], 'message wrong!');
       assert(buf[2] === message[2], 'message wrong!');

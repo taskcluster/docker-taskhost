@@ -2,6 +2,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "phusion/ubuntu-14.04-amd64"
 
   # before we deploy, figure out how to use this command
+  # can use symlink to the same effect
   config.vm.synced_folder "./", "/worker"
 
   # We need to configure docker to expose port 60366
