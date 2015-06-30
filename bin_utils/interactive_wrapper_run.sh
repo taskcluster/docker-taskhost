@@ -7,4 +7,5 @@ trap - TERM INT
 wait $PID
 EXIT_STATUS=$?
 sleep $1
-flock -x /tmp/interactive.lock echo
+flock -x /tmp/interactive.lock true
+exit EXIT_STATUS
