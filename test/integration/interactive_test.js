@@ -38,7 +38,7 @@ suite('use docker exec websocket server', () => {
     let taskId = slugid.v4();
   	let task = {
       payload: {
-        image: 'busybox',
+        image: 'taskcluster/test-ubuntu',
         command: cmd('sleep 15'),
         maxRunTime: 2 * 60,
         features: {
@@ -67,23 +67,23 @@ suite('use docker exec websocket server', () => {
     //for testing, we don't care about https verification
     let client = new DockerExecClient({
       tty: false,
-      command: ['/bin/sh'],
+      command: ['cat'],
       url: url,
       wsopts: {rejectUnauthorized: false}
     });
     await client.execute();
-    debug('client executed');
 
-    // let buf = new Buffer([0xfa, 0xff, 0x0a]);
-    // client.stdin.write(buf);
-    client.stdin.write('cd /tmp/.taskcluster_utils\nls -la\ncd /tmp\nls -la\n');
+    // client.stdin.write('cd /tmp/.taskcluster_utils\nls -la\ncd /tmp\nls -la\n');
     client.stderr.on('data', (message) => {
       debug(message.toString());
     })
     client.stdout.on('data', (message) => {
       debug(message.toString());
     });
-/*    //message is small enough that it should be returned in one chunk
+
+    let buf = new Buffer([0xfa, 0xff, 0x0a]);
+    client.stdin.write(buf);
+    //message is small enough that it should be returned in one chunk
     client.stdout.on('data', (message) => {
       debug(message.toString());
       assert(buf[0] === message[0], 'message wrong!');
@@ -92,17 +92,17 @@ suite('use docker exec websocket server', () => {
       passed = true;
       debug('test finished!');
       client.close();
-    });*/
+    });
 
     await new Promise(accept => client.socket.once('close', accept));
     assert(passed,'message not recieved');
   });
 
-  /*test('cat stress test', async () => {
+  test('cat stress test', async () => {
     let taskId = slugid.v4();
     let task = {
       payload: {
-        image: 'busybox',
+        image: 'taskcluster/test-ubuntu',
         command: cmd('sleep 60'),
         maxRunTime: 2 * 60,
         features: {
@@ -158,9 +158,9 @@ suite('use docker exec websocket server', () => {
 
     await new Promise(accept => client.socket.once('close', accept));
     assert(passed,'only ' + pointer + ' bytes recieved');
-  });*/
+  });
 
-/*  test('expires', async () => {
+  test('expires', async () => {
     settings.configure({
       interactive: {
         ssl: true,
@@ -174,7 +174,7 @@ suite('use docker exec websocket server', () => {
     let taskId = slugid.v4();
     let task = {
       payload: {
-        image: 'busybox',
+        image: 'taskcluster/test-ubuntu',
         command: cmd('sleep 1'),
         maxRunTime: 2 * 60,
         features: {
@@ -204,16 +204,15 @@ suite('use docker exec websocket server', () => {
       wsopts: {rejectUnauthorized: false}
     });
     await base.testing.sleep(5000);
-    let exited = false;
+    let connected = false;
 
-    //check for proper exit
+    //check for proper connection
     //should still be alive here
     await client.execute();
     client.stdout.on('data', (message) => {
       assert(message[0] === 0x2f); // is a slash, as expected of pwd
-      exited = true;
+      connected = true;
     });
-    
 
     await base.testing.sleep(10000);
     //should be dead here
@@ -231,11 +230,11 @@ suite('use docker exec websocket server', () => {
     await base.testing.sleep(3000);
 
     assert(dead, 'interactive session still available when it should have expired');
-    assert(exited, 'interactive session failed to exit');
+    assert(connected, 'interactive session failed to connect');
     settings.cleanup();
-  });*/
+  });
 
-  /*test('started hook fails gracefully on crash', async () => {
+  test('started hook fails gracefully on crash', async () => {
     settings.configure({
       ssl: {
         certificate: '/some/path/ssl.cert',
@@ -249,7 +248,7 @@ suite('use docker exec websocket server', () => {
     let taskId = slugid.v4();
     let task = {
       payload: {
-        image: 'busybox',
+        image: 'taskcluster/test-ubuntu',
         command: cmd('sleep 60'),
         maxRunTime: 2 * 60,
         features: {
@@ -261,5 +260,5 @@ suite('use docker exec websocket server', () => {
     let res = await worker.postToQueue(task, taskId);
     assert(/\[taskcluster\] Error: Task was aborted because states could not be started\nsuccessfully\./
       .test(res.log));
-  });*/
+  });
 });

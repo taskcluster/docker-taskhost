@@ -1,8 +1,10 @@
 #!/bin/bash
-# or ./busybox sh, both work
-exec "${@:2}"
+trap 'kill -TERM $PID' TERM INT
+${@:2} &
+PID=$!
+wait $PID
+trap - TERM INT
+wait $PID
+EXIT_STATUS=$?
 sleep $1
-(
-flock -x 200
-echo
-) 200>/tmp/interactive.lock
+flock -x /tmp/interactive.lock echo
