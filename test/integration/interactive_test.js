@@ -15,10 +15,20 @@ suite('use docker exec websocket server', () => {
   let debug = Debug('docker-worker:test:interactive-test');
 
   let worker;
+  // In rather ridiculous fashion, if taskcluster/artifact upload is under high load, this number needs to be adjusted up.
+  // It also causes the test to be slower by 2X that many seconds, so please do be careful with this.
+  let expTime = 70; 
   setup(async () => {
+    settings.cleanup();
+    settings.configure({
+      interactive: {
+        ssl: true,
+        maxTime: expTime,
+        expirationAfterSession: 1
+      }
+    });
     worker = new TestWorker(DockerWorker);
     await worker.launch();
-    settings.cleanup();
   });
 
   teardown(async () => {
@@ -34,19 +44,141 @@ suite('use docker exec websocket server', () => {
     return res.headers.location;
   };
 
-  test('cat', async () => {
-    settings.configure({
-      interactive: {
-        ssl: true,
-        expiration: 10
+  test('expires', async () => {
+    let taskId = slugid.v4();
+    let task = {
+      payload: {
+        image: 'taskcluster/test-ubuntu',
+        command: cmd('sleep 1'),
+        maxRunTime: 4 * 60,
+        features: {
+          interactive: true
+        }
       }
+    };
+    debug('posting to queue');
+    worker.postToQueue(task, taskId);
+
+    let signedUrl = worker.queue.buildSignedUrl(
+      worker.queue.getLatestArtifact,
+      taskId,
+      'private/mozilla/interactive.sock',
+      {expiration: 60 * 5});
+
+    let url;
+    await base.testing.poll(async () => {
+      url = await getWithoutRedirect(signedUrl);
+      assert(url, 'artifact not found');
+    }, 20, 1000);
+
+    let client = new DockerExecClient({
+      tty: false,
+      command: ['pwd'],
+      url: url,
+      wsopts: {rejectUnauthorized: false}
     });
+    // await base.testing.sleep(1000);
+    let connected = false;
+
+    //check for proper connection
+    //should still be alive here
+    await client.execute();
+    client.stdout.on('data', (message) => {
+      assert(message[0] === 0x2f); // is a slash, as expected of pwd
+      connected = true;
+      client.close();
+    });
+
+    await base.testing.sleep(expTime * 1000);
+    //should be dead here
+    let dead = true;
+    let failClient = new DockerExecClient({
+      tty: false,
+      command: ['echo'],
+      url: url,
+      wsopts: {rejectUnauthorized: false}
+    });
+    failClient.on('resumed', () => {
+      dead = false;
+    });
+    await failClient.execute();
+    await base.testing.sleep(3000);
+
+    assert(dead, 'interactive session still available when it should have expired');
+    assert(connected, 'interactive session failed to connect');
+  });
+
+  test('stays alive', async () => {
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
+    let taskId = slugid.v4();
+    let task = {
+      payload: {
+        image: 'taskcluster/test-ubuntu',
+        command: cmd('echo hello'),
+        maxRunTime: 4 * 60,
+        features: {
+          interactive: true
+        }
+      }
+    };
+    debug('posting to queue');
+    worker.postToQueue(task, taskId);
+
+    let signedUrl = worker.queue.buildSignedUrl(
+      worker.queue.getLatestArtifact,
+      taskId,
+      'private/mozilla/interactive.sock',
+      {expiration: 60 * 5});
+
+    let url;
+    await base.testing.poll(async () => {
+      url = await getWithoutRedirect(signedUrl);
+      assert(url, 'artifact not found');
+    }, 20, 1000);
+
+    let client = new DockerExecClient({
+      tty: false,
+      command: ['cat'],
+      url: url,
+      wsopts: {rejectUnauthorized: false}
+    });
+    let connected = false;
+
+    //check for proper connection
+    //should still be alive here
+    await client.execute();
+    client.stdin.write('a\n');
+    client.stdout.on('data', (message) => {
+      assert(message[0] === 0x61);
+      assert(message[1] === 0x0a);
+      connected = true;
+    });
+
+    await base.testing.sleep(expTime * 1000 + 1000);
+    //should still be alive here, even though it was dead here last time
+    //This is because cat is still alive
+    let status = await worker.queue.status(taskId);
+    assert(status.status.state === 'running', 'stopped early!');
+    
+
+    client.close();
+    await base.testing.sleep(3000); 
+    //should be dead here
+    status = await worker.queue.status(taskId);
+    assert(status.status.state === 'completed', 'hanging after client closed');
+
+    assert(connected, 'interactive session failed to connect');
+  });
+
+  test('cat', async () => {
     let taskId = slugid.v4();
   	let task = {
       payload: {
         image: 'taskcluster/test-ubuntu',
         command: cmd('sleep 15'),
-        maxRunTime: 2 * 60,
+        maxRunTime: 4 * 60,
         features: {
           interactive: true
         }
@@ -59,10 +191,10 @@ suite('use docker exec websocket server', () => {
     let passed = false;
 
     let signedUrl = worker.queue.buildSignedUrl(
-    worker.queue.getLatestArtifact,
-    taskId,
-    'private/mozilla/interactive.sock',
-    {expiration: 60 * 5});
+      worker.queue.getLatestArtifact,
+      taskId,
+      'private/mozilla/interactive.sock',
+      {expiration: 60 * 5});
 
     let url;
     await base.testing.poll(async () => {
@@ -79,7 +211,6 @@ suite('use docker exec websocket server', () => {
     });
     await client.execute();
 
-    // client.stdin.write('cd /tmp/.taskcluster_utils\nls -la\ncd /tmp\nls -la\n');
     client.stderr.on('data', (message) => {
       debug(message.toString());
     })
@@ -109,7 +240,7 @@ suite('use docker exec websocket server', () => {
       payload: {
         image: 'taskcluster/test-ubuntu',
         command: cmd('sleep 60'),
-        maxRunTime: 2 * 60,
+        maxRunTime: 4 * 60,
         features: {
           interactive: true
         }
@@ -165,79 +296,7 @@ suite('use docker exec websocket server', () => {
     assert(passed,'only ' + pointer + ' bytes recieved');
   });
 
-  test('expires', async () => {
-    settings.configure({
-      interactive: {
-        ssl: true,
-        expiration: 10
-      }
-    });
-
-    worker = new TestWorker(DockerWorker);
-    await worker.launch();
-
-    let taskId = slugid.v4();
-    let task = {
-      payload: {
-        image: 'taskcluster/test-ubuntu',
-        command: cmd('sleep 1'),
-        maxRunTime: 2 * 60,
-        features: {
-          interactive: true
-        }
-      }
-    };
-    debug('posting to queue');
-    worker.postToQueue(task, taskId);
-
-    let signedUrl = worker.queue.buildSignedUrl(
-      worker.queue.getLatestArtifact,
-      taskId,
-      'private/mozilla/interactive.sock',
-      {expiration: 60 * 5});
-
-    let url;
-    await base.testing.poll(async () => {
-      url = await getWithoutRedirect(signedUrl);
-      assert(url, 'artifact not found');
-    }, 20, 1000);
-
-    let client = new DockerExecClient({
-      tty: false,
-      command: ['pwd'],
-      url: url,
-      wsopts: {rejectUnauthorized: false}
-    });
-    await base.testing.sleep(5000);
-    let connected = false;
-
-    //check for proper connection
-    //should still be alive here
-    await client.execute();
-    client.stdout.on('data', (message) => {
-      assert(message[0] === 0x2f); // is a slash, as expected of pwd
-      connected = true;
-    });
-
-    await base.testing.sleep(10000);
-    //should be dead here
-    let dead = true;
-    let failClient = new DockerExecClient({
-      tty: false,
-      command: ['echo'],
-      url: url,
-      wsopts: {rejectUnauthorized: false}
-    });
-    failClient.on('resumed', () => {
-      dead = false;
-    });
-    await failClient.execute();
-    await base.testing.sleep(3000);
-
-    assert(dead, 'interactive session still available when it should have expired');
-    assert(connected, 'interactive session failed to connect');
-    settings.cleanup();
-  });
+  
 
   test('started hook fails gracefully on crash', async () => {
     settings.configure({
