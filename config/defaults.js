@@ -190,6 +190,7 @@ module.exports = {
     ssl: true,
     //time, in seconds, between end of task and end of interactive session
     //could be shorter due to worker node shutdown
-    expiration: 60 * 60
+    minTime: 10 * 60,
+    expirationAfterSession: 5 * 60
   }
 };
