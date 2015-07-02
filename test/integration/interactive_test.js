@@ -4,6 +4,7 @@ import cmd from './helper/cmd';
 import crypto from 'crypto';
 import {DockerExecClient} from 'docker-exec-websocket-server';
 import DockerWorker from '../dockerworker';
+import https from 'https';
 import TestWorker from '../testworker';
 import Promise from 'promise';
 import request from 'superagent-promise';
@@ -16,15 +17,16 @@ suite('use docker exec websocket server', () => {
 
   let worker;
   // In rather ridiculous fashion, if taskcluster/artifact upload is under high load, this number needs to be adjusted up.
-  // It also causes the test to be slower by 2X that many seconds, so please do be careful with this.
-  let expTime = 70; 
+  // It also causes the test to be slower by 2X that many seconds, so be careful with this.
+  let maxTime = 45; 
+  let expTime = 10;
   setup(async () => {
     settings.cleanup();
     settings.configure({
       interactive: {
         ssl: true,
-        maxTime: expTime,
-        expirationAfterSession: 1
+        maxTime: maxTime,
+        expirationAfterSession: expTime
       }
     });
     worker = new TestWorker(DockerWorker);
@@ -40,7 +42,11 @@ suite('use docker exec websocket server', () => {
   });
 
   async function getWithoutRedirect (url) {
-    let res = await request.get(url).redirects(0).end();
+    let res = await new Promise((resolve, reject) => {
+      https.request(url, (r) => {
+        resolve(r);
+      }).end();
+    });
     return res.headers.location;
   };
 
@@ -77,7 +83,6 @@ suite('use docker exec websocket server', () => {
       url: url,
       wsopts: {rejectUnauthorized: false}
     });
-    // await base.testing.sleep(1000);
     let connected = false;
 
     //check for proper connection
@@ -89,7 +94,7 @@ suite('use docker exec websocket server', () => {
       client.close();
     });
 
-    await base.testing.sleep(expTime * 1000);
+    await base.testing.sleep(maxTime * 1000 + 10000);
     //should be dead here
     let dead = true;
     let failClient = new DockerExecClient({
@@ -156,7 +161,7 @@ suite('use docker exec websocket server', () => {
       connected = true;
     });
 
-    await base.testing.sleep(expTime * 1000 + 1000);
+    await base.testing.sleep(maxTime * 1000 + 1000);
     //should still be alive here, even though it was dead here last time
     //This is because cat is still alive
     let status = await worker.queue.status(taskId);
@@ -164,7 +169,7 @@ suite('use docker exec websocket server', () => {
     
 
     client.close();
-    await base.testing.sleep(3000); 
+    await base.testing.sleep(expTime * 1000 + 3000); 
     //should be dead here
     status = await worker.queue.status(taskId);
     assert(status.status.state === 'completed', 'hanging after client closed');
@@ -185,7 +190,7 @@ suite('use docker exec websocket server', () => {
       }
     };
     debug('posting to queue');
-    worker.postToQueue(task, taskId);
+    worker.postToQueue(task, taskId).catch((err) => {debug(err); debug('Error');});
     debug('posted to queue');
     
     let passed = false;
@@ -322,7 +327,8 @@ suite('use docker exec websocket server', () => {
     };
     debug('posting to queue');
     let res = await worker.postToQueue(task, taskId);
-    assert(/\[taskcluster\] Error: Task was aborted because states could not be started\nsuccessfully\./
+    debug(res.log);
+    assert(/\[taskcluster\] Error: Task was aborted because states could not be started/
       .test(res.log));
   });
 });
