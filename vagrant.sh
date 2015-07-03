@@ -21,3 +21,4 @@ sudo modprobe v4l2loopback
 sudo modprobe snd-aloop
 
 sudo ln -s /vagrant /worker
+sudo curl -o /vagrant/bin-utils/busybox http://www.busybox.net/downloads/binaries/latest/busybox-x86_64
