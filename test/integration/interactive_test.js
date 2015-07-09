@@ -2,6 +2,7 @@ import assert from 'assert';
 import base from 'taskcluster-base';
 import cmd from './helper/cmd';
 import crypto from 'crypto';
+import Debug from 'debug';
 import {DockerExecClient} from 'docker-exec-websocket-server';
 import DockerWorker from '../dockerworker';
 import https from 'https';
@@ -9,7 +10,6 @@ import TestWorker from '../testworker';
 import Promise from 'promise';
 import * as settings from '../settings';
 import slugid from 'slugid';
-import Debug from 'debug';
 
 suite('use docker exec websocket server', () => {
   let debug = Debug('docker-worker:test:interactive-test');

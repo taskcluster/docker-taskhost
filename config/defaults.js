@@ -188,9 +188,10 @@ module.exports = {
 
   interactive: {
     ssl: true,
-    //time, in seconds, between end of task and end of interactive session
-    //could be shorter due to worker node shutdown
-    minTime: 10 * 60,
-    expirationAfterSession: 5 * 60
+    // Minimum time, in seconds, between start of task and end of task
+    // Could be cut short due to worker node shutdown
+    minTime: 3 * 60,
+    // Extra time the task stays alive after an interactive session finishes
+    expirationAfterSession: 15 * 60
   }
 };
