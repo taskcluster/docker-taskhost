@@ -1,7 +1,7 @@
 suite('states', function() {
   var co = require('co');
 
-  var States = require('./states');
+  var States = require('../lib/states');
 
   suite('#link', function() {
     test('empty links', co(function* () {

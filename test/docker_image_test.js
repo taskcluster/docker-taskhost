@@ -1,5 +1,5 @@
 suite('docker registry', function() {
-  var Image = require('./docker_image');
+  var Image = require('../lib/docker_image');
 
   test('#canAuthenticate', function() {
     assert.ok(!new Image('registry').canAuthenticate(), 'single part');
