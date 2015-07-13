@@ -1,7 +1,13 @@
 import assert from 'assert';
+import Debug from 'debug';
 import Docker from 'dockerode-promise';
 import DockerWorker from '../dockerworker';
+import fs from 'mz/fs';
+import https from 'https';
+import request from 'superagent-promise';
 import TestWorker from '../testworker';
+
+let debug = Debug('docker-worker:test:docker-save-test');
 
 suite('use docker-save', () => {
   let worker;
@@ -36,12 +42,38 @@ suite('use docker-save', () => {
     let taskId = result.taskId;
     let runId = result.runId;
 
-    let url = 'https://queue.taskcluster.net/v1/task/' + taskId + '/runs/' + runId +
-      '/artifacts/' + result.artifacts['private/dockerImage.tar'].name;
+    let signedUrl = worker.queue.buildSignedUrl(
+      worker.queue.getLatestArtifact,
+      taskId,
+      'private/dockerImage.tar',
+      {expiration: 60 * 5});
 
-    //maybe there's a better way to get it than making a new one
+    //why not superagent? superagent was only downlading 16K of data
+    //TODO: work on error handling here
+    await new Promise((accept, reject) => {
+      https.request(signedUrl, (res) => {
+        https.request(res.headers.location, (res) => {
+          res.pipe(fs.createWriteStream('/tmp/dockerload.tar'));
+          res.on('end', accept);
+        }).end();
+      }).end();
+    });
+
+    
+
+    // let res = await request.get(signedUrl).end();
+    // debug(res.statusCode);
+    // await new Promise((accept, reject) => {
+    //     res.pipe(fs.createWriteStream('/tmp/dockerload.tar'));
+    //     res.on('end', accept);
+    //     res.on('data', (dat) => {
+    //       debug('%s bytes recieved', dat.length);
+    //     });
+    // });
+
+    // //maybe there's a better way to get the docker obj than making a new one
     // let docker = new Docker();
-    // let newImg = await docker.createImage({fromSrc: url});
+    // await docker.load('/tmp/dockerload.tar');
     // let opts = {
     //   AttachStdout: true,
     //   AttachStderr: true,
