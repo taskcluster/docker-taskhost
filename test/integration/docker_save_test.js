@@ -48,7 +48,7 @@ suite('use docker-save', () => {
       'private/dockerImage.tar',
       {expiration: 60 * 5});
 
-    //why not superagent? superagent was only downlading 16K of data
+    //superagent was only downlading 16K of data
     //TODO: work on error handling here
     await new Promise((accept, reject) => {
       https.request(signedUrl, (res) => {
