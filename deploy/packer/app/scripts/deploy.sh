@@ -36,4 +36,4 @@ sudo depmod
 
 # install busybox
 sudo curl -o /worker/bin-utils/busybox http://www.busybox.net/downloads/binaries/latest/busybox-x86_64
-sudo chmod 555 /worker/bin-utils/busybox
+sudo chmod a+x /worker/bin-utils/busybox
