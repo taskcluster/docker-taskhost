@@ -70,20 +70,24 @@ suite('use docker-save', () => {
     let opts = {
       AttachStdout: true,
       AttachStderr: true,
-      Cmd: ['cat', '/tmp/test.log'],
-      Image: taskId + '/' + runId
+      Cmd: ['/bin/sh'],
+      Image: taskId + '/' + runId + ':latest'
     };
     let streamOpts = {
-      stdout: true,
       stream: true,
+      stdin: true,
+      stdout: true,
+      stderr: true
     }
     let container = await docker.createContainer(opts);
     await container.start();
-    let stream = container.attach(streamOpts);
+    debug(container);
+    let stream = await container.attach(streamOpts);
+    debug(stream);
     stream.on('data', (data) => {
       debug(data);
     });
+    stream.write('cat /tmp/test.log\n');
     await base.testing.sleep(10000);
   });
 });
-
