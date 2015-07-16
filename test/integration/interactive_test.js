@@ -18,7 +18,7 @@ suite('use docker exec websocket server', () => {
   // If taskcluster/artifact upload is under high load, this number needs to be adjusted up.
   // It also causes the test to be slower by 2X that many seconds, so be careful with this.
   // TODO: add polling to tests so they don't rely as much on this type of timing
-  let maxTime = 45; 
+  let maxTime = 45;
   let expTime = 10;
   setup(async () => {
     settings.cleanup();
@@ -169,7 +169,7 @@ suite('use docker exec websocket server', () => {
     
 
     client.close();
-    await base.testing.sleep(expTime * 1000 + 3000); 
+    await base.testing.sleep(expTime * 1000 + 3000);
     //should be dead here
     status = await worker.queue.status(taskId);
     assert(status.status.state === 'completed', 'hanging after client closed');
