@@ -33,7 +33,3 @@ sudo npm install -g babel@4.7.16
 sudo sh -c 'echo "v4l2loopback" >> /etc/modules'
 sudo sh -c 'echo "snd-aloop" >> /etc/modules'
 sudo depmod
-
-# install busybox
-sudo curl -o /worker/bin-utils/busybox http://www.busybox.net/downloads/binaries/latest/busybox-x86_64
-sudo chmod a+x /worker/bin-utils/busybox
