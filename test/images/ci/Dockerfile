@@ -2,7 +2,7 @@ FROM ubuntu:14.04
 
 ENV NODE_VERSION 0.12.0
 ENV NPM_VERSION 2.7.1
-ENV DOCKER_VERSION 1.4.1
+ENV DOCKER_VERSION 1.6.1
 
 
 RUN apt-get install -y apt-transport-https
@@ -30,6 +30,7 @@ RUN curl -SL "http://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x6
 env HOME /home/tester
 env SHELL /bin/bash
 env PATH $PATH:/home/tester/bin
+ENV DEBUG "docker-worker:features:interactive,docker-exec-websocket-server:*,docker-worker:test:interactive-test,runTask,docker-worker:lib:shared_file_lock"
 workdir /home/tester
 
 COPY bin /home/tester/bin/
