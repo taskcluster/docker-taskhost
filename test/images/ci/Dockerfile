@@ -30,7 +30,6 @@ RUN curl -SL "http://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x6
 env HOME /home/tester
 env SHELL /bin/bash
 env PATH $PATH:/home/tester/bin
-ENV DEBUG "docker-worker:features:interactive,docker-exec-websocket-server:*,docker-worker:test:interactive-test,runTask,docker-worker:lib:shared_file_lock"
 workdir /home/tester
 
 COPY bin /home/tester/bin/
