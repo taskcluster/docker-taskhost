@@ -211,6 +211,7 @@ schema has been changed, the run the upload-schema.js script to update.
 Before running the upload schema script, ensure that AWS credentials are loaded 
 into your environment.  See [Configuring AWS with Node](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
 
-Run the upload-schema.js script to update the schema:
+Run the upload-
+schema.js script to update the schema:
 
 `node --harmony bin/upload-schema.js`
