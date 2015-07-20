@@ -184,5 +184,14 @@ module.exports = {
     password: process.env.TESTDROID_PASSWORD
   },
 
-  dockerWorkerPrivateKey: '/etc/docker-worker-priv.pem'
+  dockerWorkerPrivateKey: '/etc/docker-worker-priv.pem',
+
+  interactive: {
+    ssl: true,
+    // Minimum time, in seconds, between start of task and end of task
+    // Could be cut short due to worker node shutdown
+    minTime: 3 * 60,
+    // Extra time the task stays alive after an interactive session finishes
+    expirationAfterSession: 15 * 60
+  }
 };
