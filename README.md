@@ -113,7 +113,9 @@ are important.
 
   1. Building the [base](/deploy/packer/base.json) AMI. Do this when:
       - You need to add new apt packages.
-      
+   
+
+   
       - You need to update docker (see above).
       
       - You need to run some expensive one-off installation.
