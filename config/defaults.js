@@ -188,5 +188,9 @@ module.exports = {
 
   dockerSave: {
     expiration: 1000 * 60 * 60 * 24 * 7
+  },
+
+  cacheSave: {
+    expiration: 1000 * 60 * 60 * 24 * 7
   }
 };
