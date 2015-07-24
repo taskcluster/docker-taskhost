@@ -24,11 +24,6 @@ suite('volume cache tests', function () {
     var cacheName = 'tmp-obj-dir-' + Date.now().toString();
     var neededScope = 'docker-worker:cache:' + cacheName;
     var fullCacheDir = path.join(localCacheDir, cacheName);
-    settings.configure({
-      cache: {
-        volumeCachePath: localCacheDir
-      }
-    });
 
     var task = {
       payload: {
@@ -65,9 +60,6 @@ suite('volume cache tests', function () {
     var neededScope = 'docker-worker:cache:' + cacheName;
 
     settings.configure({
-      cache: {
-        volumeCachePath: localCacheDir
-      },
       capacity: 2,
     });
 
@@ -116,9 +108,6 @@ suite('volume cache tests', function () {
     var neededScope = 'docker-worker:cache:' + cacheName;
 
     settings.configure({
-      cache: {
-        volumeCachePath: localCacheDir
-      },
       capacity: 2,
       capacityManagement: {
         diskspaceThreshold: 1
@@ -178,12 +167,6 @@ suite('volume cache tests', function () {
 
     var fullCache1Dir = path.join(localCacheDir, cacheName1);
     var fullCache2Dir = path.join(localCacheDir, cacheName2);
-
-    settings.configure({
-      cache: {
-        volumeCachePath: localCacheDir
-      }
-    });
 
     var task = {
       payload: {
@@ -311,9 +294,6 @@ suite('volume cache tests', function () {
     var neededScope = 'docker-worker:cache:' + cacheName;
     var fullCacheDir = path.join(localCacheDir, cacheName);
     settings.configure({
-      cache: {
-        volumeCachePath: localCacheDir
-      },
       capacityManagement: {
         diskspaceThreshold: 1
       },
