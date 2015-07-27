@@ -100,7 +100,8 @@ module.exports = {
   },
 
   cache: {
-    volumeCachePath: '/mnt/var/cache/docker-worker'
+    volumeCachePath: '/mnt/var/cache/docker-worker',
+    keyDelimiter: '::'
   },
 
   logging: {

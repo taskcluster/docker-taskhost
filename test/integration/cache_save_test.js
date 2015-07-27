@@ -11,9 +11,9 @@ import tar from 'tar-fs';
 import TestWorker from '../testworker';
 import waitForEvent from '../../lib/wait_for_event';
 import zlib from 'zlib';
-// import Debug from 'debug';
+import Debug from 'debug';
 
-// let debug = Debug('docker-worker:test:cache-save-test');
+let debug = Debug('docker-worker:test:cache-save-test');
 
 suite('use docker-save', () => {
   let worker;
@@ -55,17 +55,17 @@ suite('use docker-save', () => {
 
     //superagent means no unzipping required
     let res = await request.get(url).end();
-    let tarStream = tar.extract('/tmp/cacheload')
+    let tarStream = tar.extract('/tmp/cacheload');
     res.pipe(tarStream);
     await waitForEvent(res, 'end');
+    //so the tar actually finishes extracting; it doesn't have an end event
+    await base.testing.sleep(1000); 
+
     let testStr = await fs.readFile('/tmp/cacheload/test.log', {encoding: 'utf-8'});
     assert(testStr == 'testString\n');
 
     //cleanup temp folder
-    rimraf('/tmp/cacheload/', (err) => {
-      if (err) {
-        debug("Failed to remove tmpFolder: %s", err.stack);
-      }
-    });
+    await fs.unlink('/tmp/cacheload/test.log');
+    await fs.rmdir('/tmp/cacheload');
   });
 });
