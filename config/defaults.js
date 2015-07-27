@@ -100,7 +100,8 @@ module.exports = {
   },
 
   cache: {
-    volumeCachePath: '/mnt/var/cache/docker-worker'
+    volumeCachePath: '/mnt/var/cache/docker-worker',
+    keyDelimiter: '::'
   },
 
   logging: {
@@ -187,6 +188,10 @@ module.exports = {
   dockerWorkerPrivateKey: '/etc/docker-worker-priv.pem',
 
   dockerSave: {
+    expiration: 1000 * 60 * 60 * 24 * 7
+  },
+
+  cacheSave: {
     expiration: 1000 * 60 * 60 * 24 * 7
   }
 };
