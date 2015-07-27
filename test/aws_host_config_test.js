@@ -33,6 +33,9 @@ suite('configuration/aws', () => {
         secrets: {
           restrictedProxy: {
             accessToken: 'xyz'
+          },
+          dockerConfig: {
+            token: 'docker-token'
           }
         },
         scopes: ['no-scope:for-anything:*'],
@@ -61,7 +64,8 @@ suite('configuration/aws', () => {
         accessToken: 'xyz'
       },
       dockerConfig: {
-        allowPrivileged: true
+        allowPrivileged: true,
+        token: 'docker-token'
       },
       taskcluster: {
         clientId: config.taskcluster.clientId,
@@ -76,8 +80,6 @@ suite('configuration/aws', () => {
     }
     catch (e) {
       if (e.name === 'AssertionError') throw e;
-
-      assert.equal(e.body.error.reason, 'ResourceNotFound')
       assert.equal(e.statusCode, 404);
     }
   });

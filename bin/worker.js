@@ -5,6 +5,7 @@ var taskcluster = require('taskcluster-client');
 var base = require('taskcluster-base');
 var createLogger = require('../lib/log');
 var debug = require('debug')('docker-worker:bin:worker');
+var _ = require('lodash');
 
 var Runtime = require('../lib/runtime');
 var TaskListener = require('../lib/task_listener');
@@ -122,9 +123,7 @@ async function main () {
 
     // execute the configuration helper and merge the results
     var targetConfig = await host.configure();
-    for (var key in targetConfig) {
-      config[key] = targetConfig[key];
-    }
+    config = _.defaultsDeep(targetConfig, config);
   }
 
   // process CLI specific overrides
@@ -133,23 +132,23 @@ async function main () {
     config[field] = program[field];
   });
 
-  // If isolated containers is set override capacity...
-  if (config.isolatedContainers) {
+  // If isolated containers is set override capacity (as long as capacity is > 0
+  // Capacity could be set to zero by the host configuration if the credentials and
+  // other necessary information could not be retrieved from the meta/user/secret-data
+  // endpoints.  We set capacity to zero so no tasks are claimed and wait out the billng
+  // cycle.  This should really only happen if the worker has respawned unintentionally
+  if (config.isolatedContainers && config.capacity > 0) {
     // One capacity per core...
     config.capacity = os.cpus().length;
     config.deviceManagement.cpu.enabled = true;
     debug('running in isolated containers mode...');
   }
 
-  debug('configuration loaded %j', config);
+  debug('configuration loaded', JSON.stringify(config, null, 4));
 
   // Initialize the classes and objects with core functionality used by higher
   // level docker-worker components.
   config.docker = require('../lib/docker')();
-
-  // Default to always having at least a capacity of one.
-  // Default to zero capacity if none is provided by provisioner.  Something must be
-  config.capacity = config.capacity || 1;
 
   // Wrapped stats helper to support generators, etc...
   config.stats = new Stats(config);
