@@ -5,7 +5,6 @@ import dockerOpts from 'dockerode-options';
 import DockerWorker from '../dockerworker';
 import fs from 'mz/fs';
 import https from 'https';
-import rimraf from 'rimraf';
 import request from 'superagent-promise';
 import tar from 'tar-fs';
 import TestWorker from '../testworker';
