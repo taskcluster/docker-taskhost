@@ -1,4 +1,4 @@
-var features = require('../lib/features');
+import features from '../lib/features';
 
 // Create a schema out of the features list...
 var featureSchema = {

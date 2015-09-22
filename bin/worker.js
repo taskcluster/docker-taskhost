@@ -1,20 +1,22 @@
-var fs = require('fs');
-var os = require('os');
-var program = require('commander');
-var taskcluster = require('taskcluster-client');
-var base = require('taskcluster-base');
-var createLogger = require('../lib/log');
-var debug = require('debug')('docker-worker:bin:worker');
-var _ = require('lodash');
+import fs from 'fs';
+import os from 'os';
+import program from 'commander';
+import taskcluster from 'taskcluster-client';
+import base from 'taskcluster-base';
+import createLogger from '../lib/log';
+import Debug from 'debug';
+import _ from 'lodash';
 
-var Runtime = require('../lib/runtime');
-var TaskListener = require('../lib/task_listener');
-var ShutdownManager = require('../lib/shutdown_manager');
-var Stats = require('../lib/stats/stat');
-var GarbageCollector = require('../lib/gc');
-var VolumeCache = require('../lib/volume_cache');
-var PrivateKey = require('../lib/private_key');
-var reportHostMetrics = require('../lib/stats/host_metrics');
+import Runtime from '../lib/runtime';
+import TaskListener from '../lib/task_listener';
+import ShutdownManager from '../lib/shutdown_manager';
+import Stats from '../lib/stats/stat';
+import GarbageCollector from '../lib/gc';
+import VolumeCache from '../lib/volume_cache';
+import PrivateKey from '../lib/private_key';
+import reportHostMetrics from '../lib/stats/host_metrics';
+
+let debug = Debug('docker-worker:bin:worker');
 
 // Available target configurations.
 var allowedHosts = ['aws', 'test'];
