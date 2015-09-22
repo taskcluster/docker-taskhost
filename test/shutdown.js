@@ -1,10 +1,10 @@
 /**
 Ghetto shutdown script... this forces a shutdown (kill) of a docker container.
 */
-var dockerOpts = require('dockerode-options');
-var co = require('co');
+import dockerOpts from 'dockerode-options';
+import co from 'co';
 
-var Docker = require('dockerode-promise');
+import Docker from 'dockerode-promise';
 
 // conatiner to kill is always the first arg to this script don't be fancy.
 var containerId = process.argv[2];

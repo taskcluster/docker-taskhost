@@ -1,13 +1,13 @@
-var devnull = require('dev-null');
-var path = require('path');
-var util = require('util');
+import devnull from 'dev-null';
+import path from 'path';
+import util from 'util';
 var docker = require('../lib/docker')();
-var dockerOpts = require('dockerode-options');
-var DockerProc = require('dockerode-process');
-var dockerUtils = require('dockerode-process/utils');
-var waitForEvent = require('../lib/wait_for_event');
+import dockerOpts from 'dockerode-options';
+import DockerProc from 'dockerode-process';
+import dockerUtils from 'dockerode-process/utils';
+import waitForEvent from '../lib/wait_for_event';
 
-var Promise = require('promise');
+import Promise from 'promise';
 
 const IMAGE = 'taskcluster/docker-worker-test:latest';
 

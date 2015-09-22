@@ -1,8 +1,8 @@
 #! /usr/bin/env node --harmony
 
-var taskcluster = require('taskcluster-client');
+import taskcluster from 'taskcluster-client';
 var queue = new taskcluster.Queue();
-var request = require('superagent-promise');
+import request from 'superagent-promise';
 
 var PENDING = 'https://queue.taskcluster.net/v1/pending-tasks/aws-provisioner';
 var workerType = process.argv[2];
