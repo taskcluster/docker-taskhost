@@ -1,7 +1,7 @@
-var devnull = require('dev-null');
+import devnull from 'dev-null';
 var docker = require('../../../lib/docker')();
-var dockerUtils = require('dockerode-process/utils');
-var waitForEvent = require('../../../lib/wait_for_event');
+import dockerUtils from 'dockerode-process/utils';
+import waitForEvent from '../../../lib/wait_for_event';
 
 // Registry proxy image...
 var DOCKER_IMAGE = 'lightsofapollo/docker-registry-proxy';

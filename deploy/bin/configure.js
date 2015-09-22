@@ -3,15 +3,15 @@
 /**
 Interactive configuration of the deploy configuration for the docker worker.
 */
-var co = require('co');
-var fs = require('fs');
-var fsPath = require('path');
-var color = require('cli-color');
-var prompt = require('co-prompt');
-var util = require('util');
+import co from 'co';
+import fs from 'fs';
+import fsPath from 'path';
+import color from 'cli-color';
+import prompt from 'co-prompt';
+import util from 'util';
 
 var CONFIG = fsPath.resolve(process.argv[2] || __dirname + '/../deploy.json');
-var VARIABLES = require('../variables');
+import VARIABLES from '../variables';
 
 function* question(field, desc) {
   return yield prompt(

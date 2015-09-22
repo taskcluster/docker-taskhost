@@ -3,24 +3,30 @@
  * this automatically generated workerType and listens for the task completion
  * event.
  */
-var devnull = require('dev-null');
-var slugid = require('slugid');
-var request = require('superagent-promise');
-var debug = require('debug')('docker-worker:test:testworker');
-var waitForEvent = require('../lib/wait_for_event');
-var split = require('split2');
-var loadConfig = require('taskcluster-base/config');
-var getArtifact = require('./integration/helper/get_artifact');
+import devnull from 'dev-null';
+import slugid from 'slugid';
+import request from 'superagent-promise';
+import Debug from 'debug';
+import waitForEvent from '../lib/wait_for_event';
+import split from 'split2';
+import loadConfig from 'taskcluster-base/config';
+import getArtifact from './integration/helper/get_artifact';
 
-var Task = require('taskcluster-task-factory/task');
-var Graph = require('taskcluster-task-factory/graph');
+import Task from 'taskcluster-task-factory/task';
+import Graph from 'taskcluster-task-factory/graph';
 
-var LocalWorker = require('./localworker');
-var Queue  = require('taskcluster-client').Queue;
-var Scheduler = require('taskcluster-client').Scheduler;
-var PulseListener = require('taskcluster-client').PulseListener;
-var Promise = require('promise');
-var EventEmitter = require('events').EventEmitter;
+import LocalWorker from './localworker';
+import Queue from 'taskcluster-client';
+import Scheduler from 'taskcluster-client';
+import PulseListener from 'taskcluster-client';
+import Promise from 'promise';
+import EventEmitter from 'events';
+
+let debug = Debug('docker-worker:test:testworker');
+let Queue = Queue.Queue;
+let Scheduler = Scheduler.Scheduler;
+let PulseListener = PulseListener.PulseListener;
+let EventEmitter = EventEmitter.EventEmitter;
 
 var queueEvents = new (require('taskcluster-client').QueueEvents);
 var schedulerEvents = new (require('taskcluster-client').SchedulerEvents);

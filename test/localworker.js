@@ -1,6 +1,8 @@
-var Promise = require('promise');
+import Promise from 'promise';
 
-var spawn = require('child_process').spawn;
+import Spawn from 'child_process';
+
+let spawn = Spawn.spawn;
 
 /** Binary to launch inorder to get a worker instance running */
 const BINARY = __dirname + '/../bin/worker.js';

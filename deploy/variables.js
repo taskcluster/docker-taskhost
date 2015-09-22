@@ -1,4 +1,4 @@
-var url = require('url');
+import url from 'url';
 
 function parseUri(env) {
   var value = process.env[env];
