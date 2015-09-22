@@ -4,8 +4,8 @@ test/settings/ directory. This allows for testing complicated configuration
 situations quickly (and either inside or outside a docker container).
 */
 
-var fs = require('fs');
-var fsPath = require('path');
+import fs from 'fs';
+import fsPath from 'path';
 
 var SETTINGS_DIR = __dirname + '/settings/';
 

@@ -6,9 +6,9 @@ resources. That and the fact that we could have thousands of workers makes
 auto pushing schema's tricky. For now this script does the uploads manually.
 */
 
-var aws = require('aws-sdk-promise');
+import aws from 'aws-sdk-promise';
 
-var loadConfig = require('taskcluster-base/config');
+import loadConfig from 'taskcluster-base/config';
 var config = loadConfig({
   defaults: require('../config/defaults'),
   profile: require('../config/production'),
