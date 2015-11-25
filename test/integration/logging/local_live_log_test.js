@@ -97,4 +97,25 @@ suite('live logging', () => {
     assert(result.artifacts['public/logs/live.log'].expires === expiration,
       'expiration date of live log improperly set');
   });
+
+
+  test('live log at custom place', async () => {
+    let CUSTOM_LOCATION = 'private/logs/live.log';
+
+    let result = await worker.postToQueue({
+      payload: {
+        image: 'taskcluster/test-ubuntu',
+        command: [
+          '/bin/bash',
+          '-c',
+          'echo "first command!"'
+        ],
+        log: CUSTOM_LOCATION,
+        maxRunTime: 3 * 60
+      }
+    });
+    assert.equal(result.run.state, 'completed', 'task should be successful');
+    assert.equal(result.run.reasonResolved, 'completed', 'task should be successful');
+    assert.equal(result.artifacts[CUSTOM_LOCATION], 'foo bar');
+  });
 });

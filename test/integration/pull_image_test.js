@@ -145,4 +145,3 @@ suite('pull image', function() {
     assert.equal(result.run.reasonResolved, 'failed', 'task should be successful');
   }));
 });
-
