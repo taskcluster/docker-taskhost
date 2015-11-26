@@ -116,6 +116,9 @@ suite('live logging', () => {
     });
     assert.equal(result.run.state, 'completed', 'task should be successful');
     assert.equal(result.run.reasonResolved, 'completed', 'task should be successful');
-    assert.equal(result.artifacts[CUSTOM_LOCATION], 'foo bar');
+    assert.equal(result.artifacts[CUSTOM_LOCATION], 'TODO present');
+    assert.equal(result.artifacts['private/logs/live_backing.log'], 'TODO present');
+    assert.equal(result.artifacts['public/logs/live.log'], 'TODO not present');
+    assert.equal(result.artifacts['public/logs/live_backing.log'], 'TODO not present');
   });
 });
