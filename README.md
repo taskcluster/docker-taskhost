@@ -19,7 +19,7 @@
 
 # Docker Worker
 
-Docker task host for linux.
+Docker task host for Linux.
 
 Each task is evaluated in an isolated docker container.
 Docker has a bunch of awesome utilities for making this work well...
@@ -142,9 +142,9 @@ are important.
 
   1. Building the [base](/deploy/packer/base.json) AMI. Do this when:
       - You need to add new apt packages.
-      
+
       - You need to update docker (see above).
-      
+
       - You need to run some expensive one-off installation.
 
       - You need to update ssl/gpg keys
@@ -163,9 +163,9 @@ are important.
 
   2. Building the [app](/deploy/packer/app.json) AMI. Do this when:
       - You want to deploy new code/features.
-      
+
       - You need to update diamond/statsd/configs (not packages).
-      
+
       Note: That just because you deploy an AMI does not mean anyone is
       using it.. Usually you need to also update a provisioner workerType with
       the new AMI id.
@@ -239,7 +239,7 @@ An example block device mapping looks as follows:
 Schema changes are not deployed automatically so if the
 schema has been changed, the run the upload-schema.js script to update.
 
-Before running the upload schema script, ensure that AWS credentials are loaded 
+Before running the upload schema script, ensure that AWS credentials are loaded
 into your environment.  See [Configuring AWS with Node](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
 
 Run the upload-schema.js script to update the schema:
