@@ -16,7 +16,7 @@
 
 # Docker Worker
 
-Docker task host for linux.
+Docker task host for Linux.
 
 Each task is evaluated in an isolated docker container.
 Docker has a bunch of awesome utilities for making this work well...
@@ -258,7 +258,7 @@ An example block device mapping looks as follows:
 Schema changes are not deployed automatically so if the
 schema has been changed, the run the upload-schema.js script to update.
 
-Before running the upload schema script, ensure that AWS credentials are loaded 
+Before running the upload schema script, ensure that AWS credentials are loaded
 into your environment.  See [Configuring AWS with Node](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
 
 Run the upload-schema.js script to update the schema:
