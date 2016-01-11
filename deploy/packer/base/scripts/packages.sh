@@ -80,7 +80,7 @@ sudo apt-get update -y
 }
 
 ## upgrade the kernel, along with extra (which adds AUFS support)
-KERNEL_VER=3.19.0-43-generic
+KERNEL_VER=4.2.0-23-generic
 sudo apt-get install -y \
     linux-image-${KERNEL_VER} \
     linux-headers-${KERNEL_VER} \
