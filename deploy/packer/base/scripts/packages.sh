@@ -87,6 +87,24 @@ sudo apt-get install -y \
     linux-image-extra-${KERNEL_VER} \
     dkms
 
+# On paravirtualized instances, PV-GRUB looks at /boot/grub/menu.lst, which is different from the
+# /boot/grub/grub.cfg that dpkg just updated.  So we have to update menu.list manually.
+cat <<EOF | sudo tee /boot/grub/menu.lst >&2
+default         0
+timeout         0
+hiddenmenu
+
+title           Ubuntu 14.04.2 LTS, kernel ${KERNEL_VER}
+root            (hd0)
+kernel          /boot/vmlinuz-${KERNEL_VER} root=LABEL=cloudimg-rootfs ro console=hvc0
+initrd          /boot/initrd.img-${KERNEL_VER}
+
+title           Ubuntu 14.04.2 LTS, kernel ${KERNEL_VER} (recovery mode)
+root            (hd0)
+kernel          /boot/vmlinuz-${KERNEL_VER} root=LABEL=cloudimg-rootfs ro  single
+initrd          /boot/initrd.img-${KERNEL_VER}
+EOF
+
 ## Add the docker repo and update to pick it up
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
 sudo sh -c "echo deb https://get.docker.io/ubuntu docker main\
