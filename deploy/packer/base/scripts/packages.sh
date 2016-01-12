@@ -106,15 +106,30 @@ initrd          /boot/initrd.img-${KERNEL_VER}
 EOF
 
 ## Add the docker repo and update to pick it up
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-sudo sh -c "echo deb https://get.docker.io/ubuntu docker main\
+sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+sudo sh -c "echo deb https://apt.dockerproject.org/repo ubuntu-trusty main\
 > /etc/apt/sources.list.d/docker.list"
 sudo apt-get update -y
 
 ## Install all the other packages
-sudo apt-get install -y lxc-docker-1.6.1 btrfs-tools lvm2 curl build-essential \
-  git-core pbuilder python-mock python-configobj \
-  python-support cdbs python-pip jq rsyslog-gnutls openvpn lxc
+DOCKER_VER=1.9.1-0~trusty
+sudo apt-get install -y \
+  docker-engine=$DOCKER_VER \
+  btrfs-tools \
+  lvm2 \
+  curl \
+  build-essential \
+  git-core \
+  pbuilder \
+  python-mock \
+  python-configobj \
+  python-support \
+  cdbs \
+  python-pip \
+  jq \
+  rsyslog-gnutls \
+  openvpn \
+  lxc
 
 ## Install v4l2loopback; the version avalable from Ubuntu is too old for this kernel
 V4L2LOOPBACK_VER=0.9.1
