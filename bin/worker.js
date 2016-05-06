@@ -18,9 +18,8 @@ var PrivateKey = require('../lib/private_key');
 var reportHostMetrics = require('../lib/stats/host_metrics');
 var ImageManager = require('../lib/docker/image_manager');
 
-
 // Available target configurations.
-var allowedHosts = ['aws', 'test'];
+var allowedHosts = ['aws', 'test', 'packetnet'];
 
 // All overridable configuration options from the CLI.
 var overridableFields = [
@@ -126,7 +125,10 @@ async () => {
   }
 
   var config = base.config({
-    files: [`${__dirname}/../config.yml`],
+    files: [
+      `${__dirname}/../config.yml`,
+      `/etc/docker-worker-user-config.yml`
+    ],
     profile: profile,
     env: process.env
   });
@@ -300,4 +302,5 @@ async () => {
       taskListener.once('idle', halt);
     });
   }
-}();
+  // report error to sentry
+}().catch(err => { console.log(err.stack); process.exit(1) });
