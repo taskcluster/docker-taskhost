@@ -195,9 +195,12 @@
       }
     },
     "env": {
-      "title": "Environment variable mappings.",
+      "title": "Environment variable mappings. Must be strings.",
       "description": "Example: ```\n{\n  \"PATH\": '/borked/path' \n  \"ENV_NAME\": \"VALUE\" \n}\n```",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "maxRunTime": {
       "type": "number",
