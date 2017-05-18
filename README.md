@@ -31,7 +31,6 @@ api](https://docs.docker.com/engine/api/v1.24/)
 See the [doc site](http://docs.taskcluster.net/workers/docker-worker/index.html)
 for how to use the worker from an existing `worker-type` the docs here
 are for hacking on the worker itself.
-
 ## Requirements
 
   - Node >= 6.0
