@@ -696,11 +696,20 @@ export class Task extends EventEmitter {
       // we don't wait for the promise to resolve just trigger kill here which
       // will cause run to stop processing the task and give us an error
       // exit code.
-      this.dockerProcess.kill();
-      this.stream.write(fmtErrorLog(
-        'Task timeout after %d seconds. Force killing container.',
-        this.task.payload.maxRunTime
-      ));
+      // But first we kill with SIGINT, giving the process a chance to cleanup
+      setTimeout(() => {
+        this.dockerProcess.kill();
+        this.stream.write(fmtErrorLog(
+          'Task timeout after %d seconds. Force killing container.',
+          this.task.payload.maxRunTime
+        ));
+      }, 5 * 1000);
+      try {
+        this.dockerProcess.container.kill({signal: 'SIGINT'}).catch(err =>
+          debug('ignoring error: ', err));
+      } catch (err) {
+        debug('ignoring error: ', err);
+      }
     }.bind(this), maxRuntimeMS);
     return runtimeTimeoutId;
   }
@@ -758,7 +767,21 @@ export class Task extends EventEmitter {
   abort(reason) {
     this.taskState = 'aborted';
     this.taskException = reason;
-    if (this.dockerProcess) this.dockerProcess.kill();
+    if (this.dockerProcess) {
+      setTimeout(() => {
+        this.dockerProcess.kill();
+        this.stream.write(fmtErrorLog(
+          'Task timeout after %d seconds. Force killing container.',
+          this.task.payload.maxRunTime
+        ));
+      }, 5 * 1000);
+      try {
+        this.dockerProcess.container.kill({signal: 'SIGINT'}).catch(err =>
+          debug('ignoring error: ', err));
+      } catch (err) {
+        debug('ignoring error: ', err);
+      }
+    }
 
     this.stream.write(
       fmtErrorLog(`Task has been aborted prematurely. Reason: ${reason}`)
@@ -785,7 +808,21 @@ export class Task extends EventEmitter {
       message: errorMessage
     });
 
-    if (this.dockerProcess) this.dockerProcess.kill();
+    if (this.dockerProcess) {
+      setTimeout(() => {
+        this.dockerProcess.kill();
+        this.stream.write(fmtErrorLog(
+          'Task timeout after %d seconds. Force killing container.',
+          this.task.payload.maxRunTime
+        ));
+      }, 5 * 1000);
+      try {
+        this.dockerProcess.container.kill({signal: 'SIGINT'}).catch(err =>
+          debug('ignoring error: ', err));
+      } catch (err) {
+        debug('ignoring error: ', err);
+      }
+    }
 
     this.stream.write(fmtErrorLog(errorMessage));
   }
