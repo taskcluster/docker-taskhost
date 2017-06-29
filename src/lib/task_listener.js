@@ -243,6 +243,7 @@ export default class TaskListener extends EventEmitter {
   }
 
   async close() {
+    await this.stopIdleWork();
     clearInterval(this.reportCapacityStateIntervalId);
     clearTimeout(this.pollTimeoutId);
     if (this.cancelListener) return await this.cancelListener.close();
@@ -296,7 +297,9 @@ export default class TaskListener extends EventEmitter {
     this.lastTaskEvent = Date.now();
   }
 
-  addRunningTask(runningState) {
+  async addRunningTask(runningState) {
+    await this.stopIdleWork();
+
     //must be called before the task is added
     this.recordCapacity();
 
@@ -331,7 +334,10 @@ export default class TaskListener extends EventEmitter {
     this.runningTasks.splice(taskIndex, 1);
     this.lastKnownCapacity += 1;
 
-    if (this.isIdle()) this.emit('idle', this);
+    if (this.isIdle()) {
+      this.emit('idle', this);
+      this.startIdleWork();
+    }
   }
 
   reportCapacityState() {
@@ -549,7 +555,7 @@ export default class TaskListener extends EventEmitter {
       var taskHandler = new Task(this.runtime, task, claims, options);
       runningState.handler = taskHandler;
 
-      this.addRunningTask(runningState)
+      await this.addRunningTask(runningState)
 
       // Run the task and collect runtime metrics.
       await taskHandler.start();
@@ -575,5 +581,15 @@ export default class TaskListener extends EventEmitter {
     }
 
     this.runtime.monitor.count('task.error');
+  }
+
+  /** Start idle work, if not running */
+  startIdleWork() {
+
+  }
+
+  /** Stop idle work, if running */
+  async stopIdleWork() {
+
   }
 }
