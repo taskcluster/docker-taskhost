@@ -8,6 +8,7 @@ export default class IdleWork {
     this.runtime = runtime;
     this.done = null;
     this.abort = () => {};
+    this.monitor = runtime.workerTypeMonitor.prefix('idle-work');
   }
 
   async start() {
@@ -18,7 +19,15 @@ export default class IdleWork {
 
     if (!this.done) {
       this.abort = () => {};
-      this.done = this.run();
+      this.done = (async () => {
+        try {
+          await this.run();
+        } catch(err) {
+          debug('error from idle-work, error: ', err);
+          this.monitor.count('error-count', 1);
+          this.monitor.reportError(err, 'warning');
+        }
+      })();
     }
   }
 
@@ -32,7 +41,8 @@ export default class IdleWork {
         }
         this.abort = null;
       }
-      await this.done.catch(err => debug('error from idle-work, error: ', err));
+      // Mesure time it takes to abort
+      await this.monitor.timer('abort-duration', this.done);
       this.done = null;
     }
   }
@@ -59,10 +69,10 @@ export default class IdleWork {
       authconfig:  getCredentials(this.runtime.idleImage, this.runtime.registries, this.runtime.dockerConfig.defaultRegistry),
     });
     downloadProgress.pipe(devnull(), {end: false});
-    await new Promise((accept, reject) => {
+    await this.monitor.timer('pull-image', new Promise((accept, reject) => {
       downloadProgress.once('error', reject);
       downloadProgress.once('end', accept);
-    });
+    }));
 
     // Abort, if asked to do so...
     if (aborting) {
@@ -97,27 +107,34 @@ export default class IdleWork {
         await idleProcess.kill();
       } catch(err) {
         debug("error while killing idle container: %s", err);
+        this.monitor.reportError(err);
       }
     }
 
     // Run the idle container
     try {
-      let exitCode = await idleProcess.run({pull: false});
+      let start = Date.now();
+      let exitCode = await this.monitor.timer('work-duration', idleProcess.run({pull: false}));
       if (exitCode !== 0) {
         debug("idle container exited non-zero: %d", exitCode);
       }
+      // Count time spent working on idle-work
+      this.monitor.count('time-spent-working', (Date.now() - start));
     } catch(err) {
       debug("error trying to run idle container: %s", err);
+      this.monitor.reportError(err);
     }
 
     // Remove container
     try {
-      await this.docker.getContainer(idleProcess.container.id).remove({
-        force: true,
-        v: true,
-      });
+      await this.monitor.timer('removing-container-duration',
+        this.docker.getContainer(idleProcess.container.id).remove({
+          force: true,
+          v: true,
+      }));
     } catch(err) {
       debug("error while removing idle container: %s", err);
+      this.monitor.reportError(err);
     }
 
     // Cleanup state
