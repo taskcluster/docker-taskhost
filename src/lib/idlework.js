@@ -39,10 +39,20 @@ export default class IdleWork {
 
   async run() {
     let aborting = false;
-    // Pull image for idle work
     this.abort = () => {
       aborting = true;
     };
+
+    // Sleep for 45s before we start idle-work
+    await new Promise(resolve => setTimeout(resolve, 45 * 1000));
+    // Abort, if asked to do so...
+    if (aborting) {
+      this.done = null;
+      this.abort = () => {};
+      return;
+    }
+
+    // Pull image for idle work
     let downloadProgress = dockerUtils.pullImageIfMissing(
     this.runtime.docker, this.runtime.idleImage, {
       retryConfig: this.runtime.dockerConfig,
@@ -56,6 +66,8 @@ export default class IdleWork {
 
     // Abort, if asked to do so...
     if (aborting) {
+      this.done = null;
+      this.abort = () => {};
       return;
     }
 
