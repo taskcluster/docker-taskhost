@@ -1,6 +1,8 @@
 import dockerUtils from 'dockerode-process/utils';
 import devnull from 'dev-null';
 import { getCredentials } from './docker/docker_image';
+import Debug from 'debug';
+
 const debug = Debug('docker-worker:idle-work');
 
 export default class IdleWork {
