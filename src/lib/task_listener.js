@@ -10,6 +10,7 @@ import request from 'superagent-promise';
 import { Task } from './task';
 import { EventEmitter } from 'events';
 import { exceedsDiskspaceThreshold } from './util/capacity';
+import IdleWork from './idlework';
 
 const debug = Debug('docker-worker:task-listener');
 
@@ -39,6 +40,7 @@ export default class TaskListener extends EventEmitter {
     );
     this.capacityMonitor = this.runtime.workerTypeMonitor.prefix('capacity');
     this.deviceManager = new DeviceManager(runtime);
+    this.idleWork = new IdleWork(runtime);
   }
 
   listenForShutdowns() {
@@ -585,11 +587,11 @@ export default class TaskListener extends EventEmitter {
 
   /** Start idle work, if not running */
   startIdleWork() {
-
+    this.idlework.start();
   }
 
   /** Stop idle work, if running */
   async stopIdleWork() {
-
+    await this.idlework.stop();
   }
 }

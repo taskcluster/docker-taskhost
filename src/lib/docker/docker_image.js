@@ -58,7 +58,7 @@ export default class DockerImage {
 
     // See if any credentials apply from our list of registries...
     let defaultRegistry = this.runtime.dockerConfig.defaultRegistry;
-    this.credentials = this.getCredentials(this.runtime.registries, defaultRegistry);
+    this.credentials = getCredentials(this.name, this.runtime.registries, defaultRegistry);
 
     if (!this.credentials) {
       return true;
@@ -169,38 +169,39 @@ export default class DockerImage {
     return components.length === 2 || components.length === 3;
   }
 
-  /**
-  Attempt to find credentials from within an object of repositories.
+}
 
-  @return {Object|null} credentials or null...
-  */
-  getCredentials(repositories, defaultRegistry='') {
-    // We expect the image to be be checked via imageCanAuthenticate first.
-    // This could be user/image or host/user/image.  If only user/image, use
-    // default registry
-    var parts = this.name.split('/');
-    if (parts.length === 2) parts.unshift(defaultRegistry);
+/**
+Attempt to find credentials from within an object of repositories.
 
-    var registryHost = parts[0];
-    var registryUser = parts[1];
-    var result;
+@return {Object|null} credentials or null...
+*/
+export function getCredentials(name, repositories, defaultRegistry='') {
+  // We expect the image to be be checked via imageCanAuthenticate first.
+  // This could be user/image or host/user/image.  If only user/image, use
+  // default registry
+  var parts = name.split('/');
+  if (parts.length === 2) parts.unshift(defaultRegistry);
 
-    // Note this may search through all repositories intentionally as to only
-    // match the correct (longest match based on slashes).
-    for (var registry in repositories) {
+  var registryHost = parts[0];
+  var registryUser = parts[1];
+  var result;
 
-      // Longest possible match always wins fast path return...
-      if (registryHost + '/' + registryUser === registry) {
-        return repositories[registry];
-      }
+  // Note this may search through all repositories intentionally as to only
+  // match the correct (longest match based on slashes).
+  for (var registry in repositories) {
 
-      // Hold on to partial matches but we cannot use these as the final values
-      // without exhausting all options...
-      if (registryHost + '/' === registry || registryHost === registry) {
-        result = repositories[registry];
-      }
+    // Longest possible match always wins fast path return...
+    if (registryHost + '/' + registryUser === registry) {
+      return repositories[registry];
     }
 
-    return result;
+    // Hold on to partial matches but we cannot use these as the final values
+    // without exhausting all options...
+    if (registryHost + '/' === registry || registryHost === registry) {
+      result = repositories[registry];
+    }
   }
+
+  return result;
 }
