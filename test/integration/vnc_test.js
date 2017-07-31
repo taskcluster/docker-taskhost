@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import DockerWorker from '../dockerworker';
 import https from 'https';
+import http from 'http';
 import TestWorker from '../testworker';
 import Promise from 'promise';
 import * as settings from '../settings';
@@ -46,11 +47,20 @@ suite('interactive vnc', () => {
   async function getArtifact (queue, taskId) {
     async function getWithoutRedirect (url) {
       let res = await new Promise((resolve, reject) => {
-        https.request(url, (res) => {
-          resolve(res);
-        }).end();
+        if (process.env.TASKCLUSTER_BASE_URL === 'http://taskcluster') {
+          http.request(url, (res) => {
+            resolve(res);
+          }).end();
+        } else {
+          https.request(url, (res) => {
+            resolve(res);
+          }).end();
+        }
       });
-      assert(res.statusCode === 303);
+      assert(
+        res.statusCode === 303,
+        `Should have received a status code of 303 but received ${res.statusCode} with error ${res.error}`
+      );
       return URL.parse(res.headers.location, true).query;
     };
     let signedUrl = queue.buildSignedUrl(

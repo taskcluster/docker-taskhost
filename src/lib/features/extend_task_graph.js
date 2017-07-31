@@ -30,7 +30,7 @@ export default class ExtendTaskGraph {
 
     var container = taskHandler.dockerProcess.container;
     var scheduler = new taskcluster.Scheduler({
-      credentials: taskHandler.claim.credentials
+      credentials: taskHandler.claim.credentials,
     });
 
     // Raw tar stream for the content.

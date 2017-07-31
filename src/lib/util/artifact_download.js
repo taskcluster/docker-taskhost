@@ -28,6 +28,7 @@ export default async function(queue, stream, taskId, artifactPath, destination, 
       taskId,
       artifactPath
   );
+  debug(`downloading from signed URL: ${artifactUrl}`);
   let attempts = 0;
 
   stream.write(

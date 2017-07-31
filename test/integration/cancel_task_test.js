@@ -17,7 +17,15 @@ suite('Cancel Task', () => {
       }
     });
 
-    let queue = new taskcluster.Queue();
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
     let task = {
       payload: {
         image: 'taskcluster/test-ubuntu',
