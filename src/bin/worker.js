@@ -163,8 +163,10 @@ program.parse(process.argv);
   config.monitor.measure('workerStart', Date.now()-os.uptime());
   config.monitor.count('workerStart');
 
+  let baseUrl = config.taskclusterBaseURL ? config.taskclusterBaseURL + '/queue/v1' : undefined;
   config.queue = new taskcluster.Queue({
-    credentials: config.taskcluster
+    credentials: config.taskcluster,
+    baseUrl,
   });
 
   config.validator = await base.validator({

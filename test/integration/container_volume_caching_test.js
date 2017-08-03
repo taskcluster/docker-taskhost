@@ -19,11 +19,15 @@ suite('volume cache tests', () => {
   var purgeCache;
 
   setup(() => {
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/purge-cache/v1' : undefined;
+
     purgeCache = new taskcluster.PurgeCache({
       credentials: {
         clientId: process.env.TASKCLUSTER_CLIENT_ID,
         accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN
-      }
+      },
+      baseUrl,
     });
   });
 

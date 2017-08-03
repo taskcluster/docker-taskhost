@@ -68,13 +68,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     let imageId1 = await im.ensureImage(image, process.stdout, task, []);
@@ -107,13 +111,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     let imageId = await im.ensureImage(image, process.stdout, task, []);
@@ -144,13 +152,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     try {
@@ -186,13 +198,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     let imageId = await im.ensureImage(image, process.stdout, task, scopes);
@@ -222,13 +238,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     let imageId = await im.ensureImage(image, process.stdout, task, []);
@@ -251,13 +271,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     try {
@@ -286,13 +310,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     try {
@@ -320,13 +348,17 @@ suite('Image Manager', () => {
       monitor: monitor
     };
 
-    let task = {
-      queue: new taskcluster.Queue({
-        credentials: undefined,
-        scopes: [],
-      }),
-    };
+    let tcBaseUrl = process.env.TASKCLUSTER_BASE_URL;
+    let baseUrl = tcBaseUrl ? tcBaseUrl + '/queue/v1' : undefined;
+    let queue = new taskcluster.Queue({
+      credentials: {
+        clientId: process.env.TASKCLUSTER_CLIENT_ID,
+        accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
+      },
+      baseUrl,
+    });
 
+    let task = { queue };
     let im = new ImageManager(runtime);
     runtime.imageManager = im;
     try {

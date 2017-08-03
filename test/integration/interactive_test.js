@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import {DockerExecClient} from 'docker-exec-websocket-server';
 import DockerWorker from '../dockerworker';
+import http from 'http';
 import https from 'https';
 import TestWorker from '../testworker';
 import Promise from 'promise';
@@ -45,9 +46,15 @@ suite('use docker exec websocket server', () => {
   async function getArtifact (queue, taskId) {
     async function getWithoutRedirect (url) {
       let res = await new Promise((resolve, reject) => {
-        https.request(url, (res) => {
-          resolve(res);
-        }).end();
+        if (process.env.TASKCLUSTER_BASE_URL === 'http://taskcluster') {
+          return http.request(url, (res) => {
+            resolve(res);
+          }).end();
+        } else {
+         return https.request(url, (res) => {
+           resolve(res);
+         }).end();
+        }
       });
       assert.equal(res.statusCode, 303);
       return URL.parse(res.headers.location, true).query.socketUrl;

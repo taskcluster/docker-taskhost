@@ -48,12 +48,16 @@ export default class TestWorker extends EventEmitter {
 
     this.pulse = config.pulse;
 
+    let baseUrl = config.taskclusterBaseURL ? config.taskclusterBaseURL + '/queue/v1' : undefined;
     this.queue = new taskcluster.Queue({
-      credentials: config.taskcluster
+      credentials: config.taskcluster,
+      baseUrl,
     });
 
+    baseUrl = config.taskclusterBaseURL ? config.taskclusterBaseURL + '/scheduler/v1' : undefined;
     this.scheduler = new taskcluster.Scheduler({
-      credentials: config.taskcluster
+      credentials: config.taskcluster,
+      baseUrl,
     });
 
     var deadline = new Date();

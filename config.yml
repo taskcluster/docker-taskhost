@@ -1,4 +1,5 @@
 defaults:
+  taskclusterBaseURL: !env TASKCLUSTER_BASE_URL
   statsComponent: 'docker-worker'
   deviceManagement:
     cpu:

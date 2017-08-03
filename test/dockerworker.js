@@ -27,13 +27,9 @@ function waitForMessage(listener, event, data) {
 var COPIED_ENV = [
   'DEBUG',
   'DOCKER_HOST',
-  'AZURE_STORAGE_ACCOUNT',
-  'AZURE_STORAGE_ACCESS_KEY',
-  'TASKCLUSTER_CLIENT_ID',
-  'TASKCLUSTER_ACCESS_TOKEN',
   'PULSE_USERNAME',
   'PULSE_PASSWORD',
-  'INFLUX_CONNECTION_STRING'
+  'TASKCLUSTER_BASE_URL',
 ];
 
 function eventPromise(listener, event) {
