@@ -125,6 +125,13 @@ export default class WebsocketServer {
   }
 
   async link(task) {
+    if (!task.runtime.interactive.enabled) {
+      throw new Error(
+        'Cannot create interactive task.  Worker ' +
+        'must be configured to enable interactive access'
+      );
+    }
+
     //touches the lockfile so it can be bound properly
     this.semaphore = new SharedFileLock(await fs.open(this.lock, 'w'));
 

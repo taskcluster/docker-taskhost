@@ -25,13 +25,12 @@ suite('use docker exec websocket server', () => {
     settings.cleanup();
     settings.configure({
       interactive: {
+        enabled: true,
         ssl: true,
         minTime: minTime,
         expirationAfterSession: expTime
       }
     });
-    worker = new TestWorker(DockerWorker);
-    await worker.launch();
   });
 
   teardown(async () => {
@@ -62,6 +61,9 @@ suite('use docker exec websocket server', () => {
   };
 
   test('cat', async () => {
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
     let taskId = slugid.v4();
     let task = {
       payload: {
@@ -114,6 +116,9 @@ suite('use docker exec websocket server', () => {
   });
 
   test('expires', async () => {
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
     let taskId = slugid.v4();
     let task = {
       payload: {
@@ -217,6 +222,9 @@ suite('use docker exec websocket server', () => {
   });
 
   test('cat stress test', async () => {
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
     let taskId = slugid.v4();
     let task = {
       payload: {
@@ -285,4 +293,36 @@ suite('use docker exec websocket server', () => {
     assert(/\[taskcluster:error\] Task was aborted because states could not be started/
       .test(res.log));
   });
+
+
+  test('interactive disabled', async () => {
+    settings.configure({
+      interactive: {
+        enabled: false,
+        ssl: true,
+        minTime: minTime,
+        expirationAfterSession: expTime
+      }
+    });
+
+    worker = new TestWorker(DockerWorker);
+    await worker.launch();
+
+    let taskId = slugid.v4();
+    let task = {
+      payload: {
+        image: 'taskcluster/test-ubuntu',
+        command: cmd('sleep 50'),
+        maxRunTime: 4 * 60,
+        features: {
+          interactive: true
+        }
+      }
+    };
+
+    let result = worker.postToQueue(task, taskId).catch((err) => {debug(err); debug('Error');});
+    assert.ok(result.log.contains("Cannot create interactive task"), 'Task created an interactive session');
+    assert.ok(!Object.keys(result.artifacts).includes('private/interactive/shell.html'), 'Interactive artifact created');
+  });
+
 });
