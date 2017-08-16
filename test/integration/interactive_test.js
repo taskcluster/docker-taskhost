@@ -320,7 +320,7 @@ suite('use docker exec websocket server', () => {
       }
     };
 
-    let result = worker.postToQueue(task, taskId).catch((err) => {debug(err); debug('Error');});
+    let result = await worker.postToQueue(task, taskId).catch((err) => {debug(err); debug('Error');});
     assert.ok(result.log.contains("Cannot create interactive task"), 'Task created an interactive session');
     assert.ok(!Object.keys(result.artifacts).includes('private/interactive/shell.html'), 'Interactive artifact created');
   });
