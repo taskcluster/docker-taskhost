@@ -2,12 +2,18 @@ import {spawn} from 'child_process';
 import Debug from 'debug';
 import Promise from 'promise';
 import http from 'http'
+import path from 'path';
+import waitForPort from '../wait_for_port';
 
-let debug = Debug('docker-worker-feature:whclient');
+let debug = Debug('docker-worker-runtime:webhookserver');
+
+const DEFAULT_TARGET_PORT = 61022;
 
 class WebhookServer {
   /**
-   * Create a new instance of webhookserver
+   * Create a new instance of webhookserver.
+   * The whclient binary must be in bin-utils.
+   * Default target port is 61022.
    *
    * @param {String} binPath - Location of whclient binary
    * @param {String} clientID - Taskcluster client ID
@@ -15,17 +21,22 @@ class WebhookServer {
    * @param {String} targetPort - Port to which connections should
    * forwared
    */
-  constructor(binPath, clientID, accessToken, targetPort){
-    this.binPath = binPath;
-    this.clientID = clientID;
+  constructor({clientId, accessToken}, targetPort){
+    this.clientId = clientId;
     this.accessToken = accessToken;
     this.targetPort = targetPort;
+    if(!clientId || !accessToken){
+      throw "clientId and accessToken are required for WebhookServer";
+    }
+    if(targetPort == null)
+      this.targetPort = DEFAULT_TARGET_PORT;
 
     this.hooks = {}
 
     // create a server for handling hooks
-    this.server = http.createServer(this.handler)
+    this.server = http.createServer(this._handler)
     this.baseURL = '';
+    this.path = path.join(__dirname, "../../bin-utils/whclient")
   }
 
   /**
@@ -39,8 +50,8 @@ class WebhookServer {
   async start() {
     // start the whclient binary
     let startClient = new Promise((resolve, reject) => {
-      const proc = spawn(this.binPath, 
-        [this.clientID, this.accessToken, this.targetPort],
+      this.proc = spawn(this.path, 
+        [this.clientId, this.accessToken, this.targetPort],
         {
           stdio: ['ignore', 'pipe', 'pipe'],
         });
@@ -77,7 +88,7 @@ class WebhookServer {
    * 
    * @private
    */
-  handler(req, res) {
+  _handler(req, res) {
     // req url will start with '/'
     if (req.url.length() < 24 || req.url[23] !== '/') {
       //404
@@ -124,9 +135,13 @@ class WebhookServer {
   }
 
   /**
-   * Removes a hook with a given ID.
+   * Shutdown the whclient binary and exit
    */
-  removeHook(id) {
-    this.hooks[id] = undefined;
+  kill() {
+    // send SIGKILL. Whclient will wait for connections to end
+    // for 5 seconds before closing.
+    this.proc.kill();
   }
 }
+
+module.exports = WebhookServer

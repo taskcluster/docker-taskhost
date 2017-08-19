@@ -16,6 +16,7 @@ import GarbageCollector from '../lib/gc';
 import VolumeCache from '../lib/volume_cache';
 import PrivateKey from '../lib/private_key';
 import ImageManager from '../lib/docker/image_manager';
+import WebhookServer from '../lib/webhookserver';
 
 // Available target configurations.
 var allowedHosts = ['aws', 'test'];
@@ -238,6 +239,17 @@ program.parse(process.argv);
   shutdownManager.observe(taskListener);
 
   await taskListener.connect();
+
+  // Set up the webhookServer instance for runtime.
+  var webhookServer = null;
+  try{
+    webhookServer = new WebhookServer(config.taskcluster);
+    let url = await webhookServer.start();
+    debug("webhookserver connected. hosted on "+url);
+  }catch(e){
+    debug("could not set up webhookserver: error: "+ e);
+  }
+  runtime.webhookServer = webhookServer;
 
   runtime.log('start');
 
