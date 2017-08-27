@@ -10,7 +10,7 @@ const debug = Debug('taskcluster-docker-worker:features:webhooklog')
 
 /**
  * ContinuousReader is a utility class which allows reading a file
- * which is continuously being written to. A single call to `readUntilEOF`
+ * which is continuously being written to. A single call to `readChunk`
  * will read the file until EOF. Subsequent calls will continue reading 
  * from the point where the previous read ended.
  */
@@ -21,46 +21,52 @@ class ContinuousReader {
     this._stream = null;
   }
 
-  readUntilEOF() {
-    // create a new stream that will read until EOF
-    this._stream = fs.createReadStream(this._path, {start: this._offset});
-    // await this promise 
+  readChunk() {
     return new Promise((resolve, reject) => {
-      let buf = [];
-      this._stream.once('error', reject);
-      // add any new data to the buffer
-      this._stream.on('data', data => buf = buf + data);
-      // once EOF is reached, increment offset, close stream, and resolve
-      // promise with buffer
-      this._stream.on('end', () => {
-        this._offset += this._stream.bytesRead;
-        this._stream.close();
-        return resolve(buf);
+      // create a new stream that will read until EOF
+      this._stream = fs.createReadStream(this._path, {start: this._offset});
+      this._stream.on('data', data => {
+        this._offset += data.length;
+        resolve(data);
       });
+      this._stream.on('error', reject);
+      this._stream.on('end', () => resolve(""));
     });
+  }
+
+  pipeUntilEof(stream) {
+    return new Promise((resolve, reject) => {
+      this._stream = fs.createReadStream(this._path, {start: this._offset});
+      this._stream.on('error', reject);
+      this._stream.pipe(stream);
+      this._stream.on('end', () => {
+        this._stream.close();
+        resolve();
+      });
+    })
   }
 }
 
 /**
- * Signal is a utility class which is used for notifying readers when data
+ * Condtion is a utility class which is used for notifying readers when data
  * has been written to the file. It uses a single promise. The constructor
- * initializes the `_promise` and `_resolve` fields. When `send` is called,
- * the previous promise is resolved and the fields are reset. When `recv`
+ * initializes the `_promise` and `_resolve` fields. When `broadcast` is called,
+ * the previous promise is resolved and the fields are reset. When `wait`
  * is called, the promise is returned. Multiple callers can await the same
  * promise.
  */
-class Signal {
+class Condition {
   constructor() {
     this._resolve = null;
-    this._promise = new Promise(resolve => this._resolve = resolve);
+    this._promise = null;
   }
 
-  send() {
+  broadcast() {
+    this._promise = new Promise(resolve => this._resolve = resolve);
     this._resolve();
-    this._promise = new Promise(resolve => this._resolve = resolve);
   }
 
-  recv() {
+  wait() {
     return this._promise;
   }
 }
@@ -70,7 +76,7 @@ class Signal {
  */
 class WebhookLogs {
   constructor(){
-    this.featureName = 'webhookLog'
+    this.featureName = 'localLiveLog'
 
     // function for detaching hook
     this._detach = null;
@@ -86,18 +92,14 @@ class WebhookLogs {
     let webhookServer = task.runtime.webhookServer;
     // if webhookServer could not be set up, fail with
     // proper error message
-    if(webhookServer === null) {
-      throw "cannot add hook since webhookServer was not set up";
-    }
-
-    let signal = new Signal();
+    let condition = new Condition();
 
     debug('creating temporary log file');
     this._logFile = new temporary.File();
     this._logStream = fs.createWriteStream(this._logFile.path);
     task.stream.pipe(this._logStream);
-    task.stream.on('data', () => signal.send());
-    task.stream.on('end', () => signal.send());
+    task.stream.on('data', () => condition.broadast());
+    task.stream.on('end', () => condition.broadcast());
 
     // add the bulk log
     this._logsLocation = getLogsLocationsFromTask(task);
@@ -109,11 +111,16 @@ class WebhookLogs {
     let hook = async function(req, res) { 
       let reader = new ContinuousReader(this._logFile.path);
       try{
+        let data = "";
         while(task.state === 'running' && !res.finished){
-          let data = await reader.readUntilEOF();
-          res.write(data);
-          await sig.recv();
+          data = await reader.readChunk();
+          if(data.length > 0) {
+            res.write(data);
+          }
+          await condition.wait();
         }  
+        await reader.pipeUntilEOF(res);
+        // write any remaining data;
       }finally{
         res.end();
       }

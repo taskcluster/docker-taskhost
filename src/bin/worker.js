@@ -241,15 +241,7 @@ program.parse(process.argv);
   await taskListener.connect();
 
   // Set up the webhookServer instance for runtime.
-  var webhookServer = null;
-  try{
-    webhookServer = new WebhookServer(config.taskcluster);
-    let url = await webhookServer.start();
-    debug("webhookserver connected. hosted on "+url);
-  }catch(e){
-    debug("could not set up webhookserver: error: "+ e);
-  }
-  runtime.webhookServer = webhookServer;
+  runtime.webhookServer = await WebhookServer.startServer(config.taskcluster);
 
   runtime.log('start');
 

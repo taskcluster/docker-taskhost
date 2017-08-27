@@ -25,7 +25,7 @@ const features = {
     description: 'Logs are stored on the worker during the duration of tasks ' +
                  'and available via http chunked streaming then uploaded to s3',
     defaults: true,
-    module: TaskclusterLogs
+    module: WebhookLogs
   },
 
   artifacts: {
