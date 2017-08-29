@@ -18,6 +18,7 @@ import RelengAPIProxy from './features/releng_api_proxy';
 import DockerSave from './features/docker_save';
 import Interactive from './features/interactive.js';
 import BalrogVPNProxy from './features/balrog_vpn_proxy';
+import WebhookLogs from './features/webhooklogs'
 
 const features = {
   localLiveLog: {
