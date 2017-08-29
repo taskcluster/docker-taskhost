@@ -98,7 +98,7 @@ class WebhookLogs {
     this._logFile = new temporary.File();
     this._logStream = fs.createWriteStream(this._logFile.path);
     task.stream.pipe(this._logStream);
-    task.stream.on('data', () => condition.broadast());
+    task.stream.on('data', () => condition.broadcast());
     task.stream.on('end', () => condition.broadcast());
 
     // add the bulk log
@@ -107,19 +107,25 @@ class WebhookLogs {
     await this._bulkLog.created(task);
 
     // create hook ID and hook to add to the WebhookServer
-    let hookID = slugid.nice() + slugid.nice();
+    let hookID = slugid.nice();
+    let self = this;
     let hook = async function(req, res) { 
-      let reader = new ContinuousReader(this._logFile.path);
+      let reader = new ContinuousReader(self._logFile.path);
       try{
         let data = "";
-        while(task.state === 'running' && !res.finished){
+        // write CORS header
+        res.writeHead(200,{
+          'Content-Type': 'text/plain',
+          'Access-Control-Allow-Origin': '*'
+        });
+        while(task.taskState === 'running' && !res.finished){
           data = await reader.readChunk();
           if(data.length > 0) {
             res.write(data);
           }
           await condition.wait();
         }  
-        await reader.pipeUntilEOF(res);
+        await reader.pipeUntilEof(res);
         // write any remaining data;
       }finally{
         res.end();
@@ -171,7 +177,7 @@ class WebhookLogs {
           storageType: 'reference',
           expires: expiration,
           contentType: 'text/plain',
-          url: this.publicUrl
+          url: backingUrl
         }
       );
     }finally{

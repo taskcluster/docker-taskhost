@@ -233,15 +233,15 @@ program.parse(process.argv);
     verifySSLCertificates(runtime);
   }
 
+  // Set up the webhookServer instance for runtime.
+  runtime.webhookServer = await WebhookServer.startServer(config.taskcluster);
+
   // Build the listener and connect to the queue.
   var taskListener = new TaskListener(runtime);
   runtime.gc.taskListener = taskListener;
   shutdownManager.observe(taskListener);
 
   await taskListener.connect();
-
-  // Set up the webhookServer instance for runtime.
-  runtime.webhookServer = await WebhookServer.startServer(config.taskcluster);
 
   runtime.log('start');
 
