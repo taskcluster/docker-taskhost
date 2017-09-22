@@ -171,6 +171,7 @@ defaults:
     expiration: '7 days'
 
   interactive:
+    enabled: false
     ssl: true
     # Minimum time, in seconds, between start of task and end of task
     # Could be cut short due to worker node shutdown

@@ -26,6 +26,7 @@ suite('interactive vnc', () => {
     settings.cleanup();
     settings.configure({
       interactive: {
+        enabled: true,
         ssl: true,
         minTime: minTime,
         expirationAfterSession: expTime
