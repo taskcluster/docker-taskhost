@@ -1,18 +1,17 @@
 FROM ubuntu:14.04
 
 ENV NODE_VERSION 6.9.1
-ENV DOCKER_VERSION 1.12.6-0~ubuntu-trusty
+ENV DOCKER_VERSION 17.06.2~ce-0~ubuntu
 
-RUN apt-get update && apt-get install -y apt-transport-https
+RUN apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
-# Add key for docker apt repository
-RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D && \
-    echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" > /etc/apt/sources.list.d/docker.list
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     ca-certificates \
-    docker-engine=$DOCKER_VERSION \
+    docker-ce=$DOCKER_VERSION \
     git \
     iptables \
     lxc \

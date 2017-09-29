@@ -57,7 +57,7 @@ tasks:
       - 'secrets:get:repo:github.com/taskcluster/docker-worker:pulse-creds'
     payload:
       image: >-
-        taskcluster/worker-ci@sha256:87266692cbbeddaeb2751ff0cc69a72328841d252253e437e814105110ac6a91
+        taskcluster/worker-ci@sha256:2e4d1cfaf4f9551955f86b5ea31bdb99ba89c344837eb7760881de1976155ebd
       maxRunTime: 10800
       command:
         - >-
@@ -98,7 +98,7 @@ tasks:
       - 'secrets:get:repo:github.com/taskcluster/docker-worker:pulse-creds'
     payload:
       image: >-
-        taskcluster/worker-ci@sha256:87266692cbbeddaeb2751ff0cc69a72328841d252253e437e814105110ac6a91
+        taskcluster/worker-ci@sha256:2e4d1cfaf4f9551955f86b5ea31bdb99ba89c344837eb7760881de1976155ebd
       maxRunTime: 10800
       command:
         - >-
@@ -139,7 +139,7 @@ tasks:
       - 'secrets:get:repo:github.com/taskcluster/docker-worker:pulse-creds'
     payload:
       image: >-
-        taskcluster/worker-ci@sha256:87266692cbbeddaeb2751ff0cc69a72328841d252253e437e814105110ac6a91
+        taskcluster/worker-ci@sha256:2e4d1cfaf4f9551955f86b5ea31bdb99ba89c344837eb7760881de1976155ebd
       maxRunTime: 10800
       command:
         - >-
@@ -180,7 +180,7 @@ tasks:
       - 'secrets:get:repo:github.com/taskcluster/docker-worker:pulse-creds'
     payload:
       image: >-
-        taskcluster/worker-ci@sha256:87266692cbbeddaeb2751ff0cc69a72328841d252253e437e814105110ac6a91
+        taskcluster/worker-ci@sha256:2e4d1cfaf4f9551955f86b5ea31bdb99ba89c344837eb7760881de1976155ebd
       maxRunTime: 10800
       command:
         - >-
@@ -221,7 +221,7 @@ tasks:
       - 'secrets:get:repo:github.com/taskcluster/docker-worker:pulse-creds'
     payload:
       image: >-
-        taskcluster/worker-ci@sha256:87266692cbbeddaeb2751ff0cc69a72328841d252253e437e814105110ac6a91
+        taskcluster/worker-ci@sha256:2e4d1cfaf4f9551955f86b5ea31bdb99ba89c344837eb7760881de1976155ebd
       maxRunTime: 10800
       command:
         - >-
