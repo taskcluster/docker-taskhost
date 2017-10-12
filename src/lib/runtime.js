@@ -74,7 +74,15 @@ Runtime.prototype = {
   /**
   Host instance
   */
-  hostManager: null
+  hostManager: null,
+
+  /**
+  A WebhookServer instance which can be used to
+  add hooks for tasks
+
+  @type {WebhookServer}
+  */
+  webhookServer: null
 };
 
 module.exports = Runtime;
