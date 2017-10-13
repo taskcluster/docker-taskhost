@@ -1,11 +1,11 @@
 var devnull = require('dev-null');
 var path = require('path');
 var util = require('util');
-var docker = require('../build/lib/docker')();
+var docker = require('../src/lib/docker')();
 var dockerOpts = require('dockerode-options');
 var DockerProc = require('dockerode-process');
 var dockerUtils = require('dockerode-process/utils');
-var waitForEvent = require('../build/lib/wait_for_event');
+var waitForEvent = require('../src/lib/wait_for_event');
 
 var Promise = require('promise');
 
@@ -44,7 +44,7 @@ function eventPromise(listener, event) {
   });
 }
 
-export default class DockerWorker {
+class DockerWorker {
   constructor(provisionerId, workerType, workerId) {
     this.provisionerId = provisionerId;
     this.workerType = workerType;
@@ -68,7 +68,7 @@ export default class DockerWorker {
           'securityfs',
           '/sys/kernel/security',
           '&&',
-          `node /worker/build/bin/worker.js`,
+          `node /worker/src/bin/worker.js`,
           '--host test',
           '--worker-group', 'random-local-worker',
           '--worker-id', this.workerId,
@@ -130,3 +130,5 @@ export default class DockerWorker {
     }
   }
 }
+
+module.exports = DockerWorker;
