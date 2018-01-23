@@ -21,7 +21,7 @@ class DockerInDocker {
     this.featureName = 'dind';
     // dind-service container
     this.container = null;
-    this.tmpFolder = path.join('/tmp', slugid.v4());
+    this.tmpFolders = [];
   }
 
   async link(task) {
@@ -36,8 +36,15 @@ class DockerInDocker {
 
     // Create temporary directory
     await new Promise((accept, reject) => {
-      fs.mkdir(this.tmpFolder, (err) => {
-        return err ? reject(err) : accept();
+      fs.mkdtemp('/tmp', (err, folder) => {
+        if (err) {
+          return reject(err);
+        }
+        if (this.tmpFolders.length) {
+          task.runtime.log("dind: link had already been called.");
+        }
+        this.tmpFolders.unshift(folder);
+        return accept();
       });
     });
 
@@ -49,7 +56,7 @@ class DockerInDocker {
       Env: ['PORT='],
       HostConfig: {
         Privileged: true,
-        Binds: [`${this.tmpFolder}:/opt/dind-service/run`]
+        Binds: [`${this.tmpFolders[0]}:/opt/dind-service/run`]
       }
     });
 
@@ -60,7 +67,7 @@ class DockerInDocker {
     await this.container.start({});
 
     // Find socket path
-    let socketPath = path.join(this.tmpFolder, 'docker.sock');
+    let socketPath = path.join(this.tmpFolders[0], 'docker.sock');
 
     try {
       await waitForSocket(socketPath, INIT_TIMEOUT);
@@ -85,13 +92,15 @@ class DockerInDocker {
     // Remove temporary folder, this should be possible even though container
     // is running... Well, maybe docker will complain that mounted folder is
     // deleted (delete socket while running is not a problem)
-    rmrf(this.tmpFolder, err => {
-      // Errors here are not great, but odds of a slugid collision are fairly
-      // slim...
-      if (err) {
-        debug("Failed to remove tmpFolder: %s", err.stack);
-      }
-    });
+    for (let folder of this.tmpFolders) {
+      rmrf(folder, err => {
+        // Errors here are not great, but odds of a slugid collision are fairly
+        // slim...
+        if (err) {
+          debug("Failed to remove tmpFolder: %s", err.stack);
+        }
+      });
+    }
   }
 }
 
