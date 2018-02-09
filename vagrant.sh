@@ -2,6 +2,13 @@
 
 set -e -v -x
 
+# Upgrade system packages first. We only do this here because in packer,
+# the base AMI should be used to define the package set. This ensures
+# that AMI generation is more deterministic.
+sudo apt-get update -y
+sudo apt-get dist-upgrade -y
+sudo apt-get autoremove -y
+
 # This script can run as part of Vagrant provisioning, in which case
 # packages.sh isn't present (Vagrantfile executes packages.sh separate).
 # Or it can run in standalone, in which case packages.sh is present.
