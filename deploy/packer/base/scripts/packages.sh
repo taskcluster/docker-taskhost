@@ -111,3 +111,7 @@ sudo sh -c 'echo "options snd-aloop enable=1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
 # Do one final package cleanup, just in case.
 sudo apt-get autoremove -y
+
+# Remove apt packages and lists to free up lots of space.
+sudo apt-get clean
+sudo rm -rf /var/lib/apt/lists/*
