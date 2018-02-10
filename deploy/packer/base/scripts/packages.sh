@@ -3,7 +3,6 @@
 set -e -v
 
 DOCKER_VERSION=17.12.0~ce-0~ubuntu
-KERNEL_VER=4.4.0-109-generic
 V4L2LOOPBACK_VERSION=0.10.0
 
 lsb_release -a
@@ -36,21 +35,34 @@ sudo sh -c 'echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu trus
 ## Update to pick up new registries
 sudo apt-get update -y
 
-## Update kernel
-sudo apt-get install -y \
-    linux-image-$KERNEL_VER \
-    linux-headers-$KERNEL_VER \
-    linux-image-extra-$KERNEL_VER \
-    dkms
+# Install AWS optimized kernel.
+sudo apt-get install -y linux-aws linux-tools-aws
 
-# Clean up old 3.13 kernel.
-sudo apt-get remove -y linux-image-extra-virtual
+# Remove the virtual package for the old kernel.
+sudo apt-get remove -y linux-image-virtual linux-image-extra-virtual linux-headers-virtual
+
+# Purge leftover kernel packages.
+old_packages=$(dpkg-query -W -f'${Package}\n' linux-*-generic)
+if [ -n "${old_packages}" ]; then
+    sudo apt-get -y purge ${old_packages}
+fi
+
 sudo apt-get autoremove -y
+
+# Capture the installed kernel version so we can compile kernel modules for
+# it below.
+KERNEL_VER=$(dpkg --list | grep 'linux-image-[0-9]' | awk '{print $2}' | sed 's/linux-image-//')
+
+if [ -z "${KERNEL_VER}" ]; then
+    echo "unable to resolve installed kernel version!"
+    exit 1
+fi
 
 ## Install all the packages
 sudo apt-get install -y \
     unattended-upgrades \
     docker-ce=$DOCKER_VERSION \
+    dkms \
     lvm2 \
     curl \
     build-essential \
