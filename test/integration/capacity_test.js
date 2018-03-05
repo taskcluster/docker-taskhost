@@ -21,8 +21,8 @@ suite('Capacity', () => {
     dockerConfig: {
       defaultRegistry: 'registry.hub.docker.com',
       maxAttempts: 5,
-      delayFactor: 15 * 1000,
-      randomizationFactor: 0.25
+      delayFactor: 2,
+      randomizationFactor: true
     },
     log: createLogger()
   });

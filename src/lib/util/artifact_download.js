@@ -5,11 +5,12 @@ const fs = require('mz/fs');
 const sleep = require('../util/sleep');
 const { fmtLog, fmtErrorLog } = require('../log');
 const pipe = require('promisepipe');
+const promiseRetry = require('promise-retry');
 
 const RETRY_CONFIG = {
   maxAttempts: 5,
-  delayFactor: 15 * 1000,
-  randomizationFactor: 0.25
+  delayFactor: 2,
+  randomizationFactor: true
 };
 
 let debug = new Debug('artifactDownload');
@@ -27,15 +28,25 @@ module.exports = async function(queue, stream, taskId, artifactPath, destination
   let artifactUrl = artifactPath.startsWith('public/') ?
     queue.buildUrl(queue.getLatestArtifact, taskId, artifactPath) :
     queue.buildSignedUrl(queue.getLatestArtifact, taskId, artifactPath);
-  let attempts = 0;
+
+  // As we change the semantics of these parameters, we add
+  // some preventive checks in case we didn't handle all the cases
+  // in production.
+  if (delayFactor > 10) {
+    delayFactor = RETRY_CONFIG.delayFactor;
+  }
+  if (typeof randomizationFactor !== 'boolean') {
+    randomizationFactor = RETRY_CONFIG.randomizationFactor;
+  }
 
   stream.write(
     fmtLog(`Downloading artifact "${artifactPath}" from task ID: ${taskId}.`)
   );
-  while (attempts++ < maxAttempts) {
-    let hash = crypto.createHash('sha256');
-    let destinationStream = fs.createWriteStream(destination);
-    try {
+
+  return await promiseRetry((retry, attempt) => {
+    return new Promise(async(accept, reject) => {
+      let hash = crypto.createHash('sha256');
+      let destinationStream = fs.createWriteStream(destination);
       let expectedSize = 0;
       let receivedSize;
       let req = request.get(artifactUrl);
@@ -65,40 +76,36 @@ module.exports = async function(queue, stream, taskId, artifactPath, destination
       if (req.response.statusCode !== 200) {
         let error = new Error(req.response.statusMessage);
         error.statusCode = req.response.statusCode;
-        throw error;
+        reject(error);
       }
 
       if (receivedSize !== expectedSize) {
-        throw new Error(`Expected size is '${expectedSize}' but received '${receivedSize}'`);
+        reject(new Error(`Expected size is '${expectedSize}' but received '${receivedSize}'`));
       }
 
       stream.write(fmtLog('Downloaded artifact successfully.'));
       stream.write(fmtLog(
         `Downloaded ${(expectedSize / 1024 / 1024).toFixed(3)} mb`
       ));
-      return `sha256:${hash.digest('hex')}`;
-    } catch(e) {
+      accept(`sha256:${hash.digest('hex')}`);
+    }).catch(async(e) => {
       debug(`Error downloading "${artifactPath}" from task ID "${taskId}". ${e}`);
 
-      if (attempts >= maxAttempts || [404, 401].includes(e.statusCode)) {
+      if ([404, 401].includes(e.statusCode)) {
         throw new Error(
           `Could not download artifact "${artifactPath} from ` +
-          `task "${taskId}" after ${attempts} attempt(s). Error: ${e.message}`
+          `task "${taskId}" after ${attempt} attempt(s). Error: ${e.message}`
         );
       }
 
       // remove any partially downloaded file
       await fs.unlink(destination);
 
-      let delay = Math.pow(2, attempts - 1) * delayFactor;
-      let exponentialDelay = delay * (Math.random() * 2 * randomizationFactor + 1 - randomizationFactor);
-      stream.write(fmtErrorLog(
-        `Error downloading "${artifactPath}" from task ID "${taskId}". ${e} ` +
-        `Next Attempt in: ${exponentialDelay.toFixed(2)} ms.`
-      ));
-
-      await sleep(exponentialDelay);
-    }
-  }
+      retry(e);
+    });
+  }, {
+    retries: maxAttempts,
+    factor: delayFactor,
+    randomize: randomizationFactor,
+  });
 };
-

@@ -24,11 +24,10 @@ defaults:
     defaultRegistry: 'registry.hub.docker.com'
     # Maximum number of attempts to make when pulling an image
     maxAttempts: 5
-    # Delay factor rand randomizationFactor used to computer randomized
-    # exponential backoff when attempting to retry docker pulls
-    delayFactor: 15000
-    # Value between 0 and 1
-    randomizationFactor: 0.25
+    # The exponential factor of the exponential backoff
+    delayFactor: 2
+    # If true, multiplies the delay for a random factor between 1 and 2
+    randomizationFactor: true
   features:
     relengAPIProxy:
       image: 'taskcluster/relengapi-proxy:2.3.1'

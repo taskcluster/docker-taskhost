@@ -134,8 +134,8 @@ suite('Docker custom private registry', () => {
       dockerConfig: {
         defaultRegistry: 'registry.hub.docker.com',
         maxAttempts: 1,
-        delayFactor: 100,
-        randomizationFactor: 0.25
+        delayFactor: 1,
+        randomizationFactor: true
       }
     });
 
@@ -152,7 +152,7 @@ suite('Docker custom private registry', () => {
 
     assert.equal(result.run.state, 'failed', 'auth download works');
     assert.equal(result.run.reasonResolved, 'failed', 'auth download works');
-    assert.ok(result.log.includes(`image ${REPO_IMAGE_NAME} not found`), 'authorization failed');
+    assert.ok(result.log.includes('authentication required'), 'authorization failed');
 
     await worker.terminate();
   });

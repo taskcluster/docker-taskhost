@@ -15,8 +15,8 @@ let monitor;
 const DOCKER_CONFIG = {
   defaultRegistry: 'registry.hub.docker.com',
   maxAttempts: 5,
-  delayFactor: 1,
-  randomizationFactor: 0.25
+  delayFactor: 2,
+  randomizationFactor: true,
 };
 
 suite('Image Manager', () => {
