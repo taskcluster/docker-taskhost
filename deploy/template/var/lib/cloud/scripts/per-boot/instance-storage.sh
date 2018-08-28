@@ -12,7 +12,9 @@ if ! lvdisplay | grep instance_storage; then
     # c5 and newer has nvme* devices. The nvmeN devices can't be used
     # with vgcreate. But nvmeNnN can.
     if [ -e /dev/nvme0 ]; then
-        devices=$(ls /dev/nvme*n* | grep -v '/dev/nvme0')
+        devices=$(ls /dev/nvme*n* | grep -vw '/dev/nvme0')
+    elif [ -e /dev/sdb ]; then
+        devices=$(ls /dev/sd* | grep -v '/dev/sda')
     else
         devices=$(ls /dev/xvd* | grep -v '/dev/xvda')
     fi

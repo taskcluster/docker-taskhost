@@ -5,6 +5,7 @@
     "npmPackage":          "",
     "templateContents":    "",
     "hvmSourceAMI":        "ami-82fea7fa",
+    "gceSourceImage":      "docker-worker-base-1549391392",
     "workerRevision":      ""
   },
   "provisioners": [
@@ -35,7 +36,7 @@
     {
       "type":           "shell",
       "inline":         ["/tmp/gen-signing-key"],
-      "only":           ["hvm-builder"]
+      "only":           ["hvm-builder", "gce"]
     },
     {
       "type":           "file",
@@ -60,6 +61,16 @@
     {
       "type":           "shell",
       "inline":         ["sudo unattended-upgrade"]
+    },
+    {
+      "type":           "shell",
+      "inline":         ["sudo bash -c 'echo export HOST=aws >> /etc/default/docker-worker'"],
+      "only":           ["hvm-builder", "hvm-builder-trusted"]
+    },
+    {
+      "type":           "shell",
+      "inline":         ["sudo bash -c 'echo export HOST=gcp >> /etc/default/docker-worker'"],
+      "only":           ["gce"]
     }
   ],
   "builders": [
@@ -94,6 +105,18 @@
         "Revision":         "{{user `workerRevision`}}",
         "Base_AMI":         "{{user `hvmSourceAMI`}}"
       }
+    },
+    {
+      "type": "googlecompute",
+      "name": "gce",
+      "project_id": "linux64-builds",
+      "source_image": "{{user `gceSourceImage`}}",
+      "ssh_username": "ubuntu",
+      "zone": "us-west1-b",
+      "image_family": "docker-worker-base",
+      "image_name": "docker-worker-app-{{timestamp}}",
+      "instance_name": "docker-worker-base-{{uuid}}",
+      "image_licenses": ["projects/vm-options/global/licenses/enable-vmx"]
     }
   ],
   "post-processors": [
