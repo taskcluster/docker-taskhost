@@ -142,10 +142,13 @@ Create a list of cached volumes that will be mounted within the docker container
 @param {object} volumes to mount in the container
  */
 async function buildVolumeBindings(taskVolumeBindings, volumeCache, taskScopes) {
-  let allowed = await hasPrefixedScopes('docker-worker:cache:', taskVolumeBindings, taskScopes);
+  let allowed = (
+    (await hasPrefixedScopes('worker:cache:', taskVolumeBindings, taskScopes)) ||
+    (await hasPrefixedScopes('docker-worker:cache:', taskVolumeBindings, taskScopes))
+  );
   if (!allowed) {
     throw new Error('Insufficient scopes to attach cache volumes.  The task must ' +
-    'have scope `docker-worker:cache:<cache-name>` for each cache in `payload.caches`.');
+    'have scope `worker:cache:<cache-name>` for each cache in `payload.caches`.');
   }
 
   let bindings = [];
