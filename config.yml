@@ -57,7 +57,7 @@ defaults:
   taskclusterLogImage: 'taskcluster/livelog:v4'
   testdroidProxyImage: 'taskcluster/testdroid-proxy:0.0.7'
   balrogVPNProxyImage: 'taskclusterprivate/taskcluster-vpn-proxy:0.0.3'
-  dindImage: 'taskcluster/dind-service:v4.0'
+  dindImage: 'taskcluster/dind-service:v5.0'
 
   alivenessCheckInterval: 30000
 
