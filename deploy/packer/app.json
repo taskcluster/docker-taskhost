@@ -44,8 +44,18 @@
       "only":           ["hvm-builder-trusted"]
     },
     {
+      "type":           "file",
+      "source":         "{{user `cotEd25519SigningKey`}}",
+      "destination":    "docker-worker-ed25519-signing-key.key",
+      "only":           ["hvm-builder-trusted"]
+    },
+    {
       "type":           "shell",
       "inline":         ["sudo mv docker-worker-gpg-signing-key.key /etc"]
+    },
+    {
+      "type":           "shell",
+      "inline":         ["sudo mv docker-worker-ed25519-signing-key.key /etc"]
     },
     {
       "type":           "shell",
