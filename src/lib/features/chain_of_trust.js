@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const stream = require('stream');
 const openpgp = require('openpgp');
+const tweetnacl = require('tweetnacl');
 const Debug = require('debug');
 const fs = require('mz/fs');
 const streamClosed = require('../stream_closed');
@@ -25,6 +26,8 @@ class ChainOfTrust {
     this.hash = crypto.createHash('sha256');
     let armoredKey = fs.readFileSync(task.runtime.signingKeyLocation, 'ascii');
     this.key = openpgp.key.readArmored(armoredKey).keys;
+    let seed = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64').toString('ascii');
+    this.ed25519Key = tweetnacl.sign.keyPair.fromSeed(seed).secretKey;
 
     this.file = new temporary.File();
     debug(`created temporary file: ${this.file.path}`);
@@ -93,15 +96,43 @@ class ChainOfTrust {
         certificate.environment[tag] = task.runtime[tag];
       }
     });
+    let chainOfTrust = JSON.stringify(certificate, null, 2);
+    let chainOfTrustSig = tweetnacl.sign(chainOfTrust, this.ed25519Key);
+    var cotBufferStream = new stream.PassThrough();
+    cotBufferStream.end(new Buffer(chainOfTrust.data))
+    var sigBufferStream = new stream.PassThrough();
+    sigBufferStream.end(new Buffer(chainOfTrustSig.data))
 
     let signedChainOfTrust = await openpgp.sign({
-      data: JSON.stringify(certificate, null, 2),
+      data: chainOfTrust,
       privateKeys: this.key
     });
 
     // Initiate a buffer stream to read from when uploading
     var bufferStream = new stream.PassThrough();
     bufferStream.end(new Buffer(signedChainOfTrust.data));
+
+    try {
+      await uploadToS3(task.queue, task.status.taskId, task.runId,
+        cotBufferStream, 'public/chain-of-trust.json', expiration, {
+          'content-type': 'text/plain',
+          'content-length': chainOfTrust.data.length
+        });
+    } catch (err) {
+      debug(err);
+      throw err;
+    }
+
+    try {
+      await uploadToS3(task.queue, task.status.taskId, task.runId,
+        sigBufferStream, 'public/chain-of-trust.json.sig', expiration, {
+          'content-type': 'application/octet-stream',
+          'content-length': chainOfTrustSig.data.length
+        });
+    } catch (err) {
+      debug(err);
+      throw err;
+    }
 
     try {
       await uploadToS3(task.queue, task.status.taskId, task.runId,
