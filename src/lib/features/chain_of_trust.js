@@ -27,7 +27,7 @@ class ChainOfTrust {
     let armoredKey = fs.readFileSync(task.runtime.signingKeyLocation, 'ascii');
     this.key = openpgp.key.readArmored(armoredKey).keys;
     let seed = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64').toString('ascii');
-    this.ed25519Key = tweetnacl.sign.keyPair.fromSeed(seed).secretKey;
+    this.ed25519Key = tweetnacl.sign.detached.keyPair.fromSeed(seed).secretKey;
 
     this.file = new temporary.File();
     debug(`created temporary file: ${this.file.path}`);
