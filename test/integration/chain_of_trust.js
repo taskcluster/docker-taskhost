@@ -61,6 +61,8 @@ suite('certificate of trust', () => {
     assert.equal(result.run.reasonResolved, 'completed', 'task should be successful');
 
     let expectedArtifacts = ['public/logs/certified.log',
+      'public/chain-of-trust.json',
+      'public/chain-of-trust.json.sig',
       'public/chainOfTrust.json.asc',
       'public/logs/live.log',
       'public/logs/live_backing.log',
@@ -68,6 +70,14 @@ suite('certificate of trust', () => {
       'public/bar'].sort();
     assert.deepEqual(Object.keys(result.artifacts).sort(), expectedArtifacts);
 
+    // ed25519 cot
+    let chainOfTrust = await getArtifact(result, 'public/chain-Of-trust.json');
+    let chainOfTrustSig = await getArtifact(result, 'public/chain-Of-trust.json.sig');
+    let seed = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64').toString('ascii');
+    let verifyKey = tweetnacl.sign.keyPair.fromSeed(seed).publicKey;
+    assert(tweetnacl.sign.detached.verify(chainOfTrust, chainOfTrustSig, verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
+
+    // openpgp cot
     let signedChainOfTrust = await getArtifact(result, 'public/chainOfTrust.json.asc');
     let armoredKey = fs.readFileSync('test/fixtures/gpg_signing_key.asc', 'ascii');
     let key = openpgp.key.readArmored(armoredKey);
@@ -77,7 +87,7 @@ suite('certificate of trust', () => {
     };
     let verified = await openpgp.verify(opts);
 
-    assert(verified.signatures[0].valid, 'Certificate does not appear to be valid');
+    assert(verified.signatures[0].valid, 'OpenPGP certificate does not appear to be valid');
 
     // computer the hash of the live_backing.log which should be the same as the
     // certified log that was uploaded
@@ -91,6 +101,7 @@ suite('certificate of trust', () => {
     };
 
     let data = JSON.parse(verified.data);
+    assert.deepEqual(data, chainOfTrust);
     assert.deepEqual(data.artifacts, expectedHashes);
 
     assert.equal(data.environment.privateIpAddress, '169.254.1.1');
