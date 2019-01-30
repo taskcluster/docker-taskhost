@@ -7,6 +7,7 @@ const cmd = require('./helper/cmd');
 const expires = require('./helper/expires');
 const testworker = require('../post_task');
 const openpgp = require('openpgp');
+const tweetnacl = require('tweetnacl');
 const {removeImage} = require('../../src/lib/util/remove_image');
 const {TASK_ID, TASK_IMAGE_HASH, TASK_IMAGE_ARTIFACT_HASH} = require('../fixtures/image_artifacts');
 
