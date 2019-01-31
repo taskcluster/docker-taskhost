@@ -97,11 +97,11 @@ class ChainOfTrust {
       }
     });
     let chainOfTrust = JSON.stringify(certificate, null, 2);
-    let chainOfTrustSig = tweetnacl.sign.detached(new Buffer(chainOfTrust.data), this.ed25519Key);
+    let chainOfTrustSig = tweetnacl.sign.detached(Buffer.from(chainOfTrust), this.ed25519Key);
     var cotBufferStream = new stream.PassThrough();
-    cotBufferStream.end(new Buffer(chainOfTrust.data))
+    cotBufferStream.end(Buffer.from(chainOfTrust));
     var sigBufferStream = new stream.PassThrough();
-    sigBufferStream.end(new Buffer(chainOfTrustSig.data))
+    sigBufferStream.end(new Buffer(chainOfTrustSig));
 
     let signedChainOfTrust = await openpgp.sign({
       data: chainOfTrust,
@@ -114,9 +114,20 @@ class ChainOfTrust {
 
     try {
       await uploadToS3(task.queue, task.status.taskId, task.runId,
+        bufferStream, 'public/chainOfTrust.json.asc', expiration, {
+          'content-type': 'text/plain',
+          'content-length': signedChainOfTrust.data.length
+        });
+    } catch (err) {
+      debug(err);
+      throw err;
+    }
+
+    try {
+      await uploadToS3(task.queue, task.status.taskId, task.runId,
         cotBufferStream, 'public/chain-of-trust.json', expiration, {
           'content-type': 'text/plain',
-          'content-length': chainOfTrust.data.length
+          'content-length': chainOfTrust.length
         });
     } catch (err) {
       debug(err);
@@ -127,23 +138,13 @@ class ChainOfTrust {
       await uploadToS3(task.queue, task.status.taskId, task.runId,
         sigBufferStream, 'public/chain-of-trust.json.sig', expiration, {
           'content-type': 'application/octet-stream',
-          'content-length': chainOfTrustSig.data.length
+          'content-length': chainOfTrustSig.length
         });
     } catch (err) {
       debug(err);
       throw err;
     }
 
-    try {
-      await uploadToS3(task.queue, task.status.taskId, task.runId,
-        bufferStream, 'public/chainOfTrust.json.asc', expiration, {
-          'content-type': 'text/plain',
-          'content-length': signedChainOfTrust.data.length
-        });
-    } catch (err) {
-      debug(err);
-      throw err;
-    }
   }
 
 }
