@@ -26,9 +26,8 @@ class ChainOfTrust {
     this.hash = crypto.createHash('sha256');
     let armoredKey = fs.readFileSync(task.runtime.signingKeyLocation, 'ascii');
     this.key = openpgp.key.readArmored(armoredKey).keys;
-    let skString = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64').toString('ascii');
-    this.ed25519Key = tweetnacl.sign.keyPair.fromSecretKey(skString).secretKey;
-    // this.ed25519Key = tweetnacl.sign.keyPair.fromSeed(seed).secretKey;
+    let sk = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64');
+    this.ed25519Key = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64');
 
     this.file = new temporary.File();
     debug(`created temporary file: ${this.file.path}`);
@@ -98,7 +97,7 @@ class ChainOfTrust {
       }
     });
     let chainOfTrust = JSON.stringify(certificate, null, 2);
-    let chainOfTrustSig = tweetnacl.sign(chainOfTrust, this.ed25519Key);
+    let chainOfTrustSig = tweetnacl.sign.detached(new Buffer(chainOfTrust.data), this.ed25519Key);
     var cotBufferStream = new stream.PassThrough();
     cotBufferStream.end(new Buffer(chainOfTrust.data))
     var sigBufferStream = new stream.PassThrough();
