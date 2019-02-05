@@ -26,8 +26,10 @@ class ChainOfTrust {
     this.hash = crypto.createHash('sha256');
     let armoredKey = fs.readFileSync(task.runtime.signingKeyLocation, 'ascii');
     this.key = openpgp.key.readArmored(armoredKey).keys;
-    let sk = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64');
     this.ed25519Key = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64');
+// XXX the below commented code breaks the integration test, with or without the 'ascii'
+//    this.ed25519Key = Buffer.from(await new Promise((accept, reject) =>
+//      fs.readFile(task.runtime.ed25519SigningKeyLocation, (err, data) => err ? reject(err) : accept(data), 'ascii')), 'base64');
 
     this.file = new temporary.File();
     debug(`created temporary file: ${this.file.path}`);
@@ -98,9 +100,9 @@ class ChainOfTrust {
     });
     let chainOfTrust = JSON.stringify(certificate, null, 2);
     let chainOfTrustSig = tweetnacl.sign.detached(Buffer.from(chainOfTrust), this.ed25519Key);
-    var cotBufferStream = new stream.PassThrough();
+    let cotBufferStream = new stream.PassThrough();
     cotBufferStream.end(Buffer.from(chainOfTrust));
-    var sigBufferStream = new stream.PassThrough();
+    let sigBufferStream = new stream.PassThrough();
     sigBufferStream.end(new Buffer(chainOfTrustSig));
 
     let signedChainOfTrust = await openpgp.sign({
@@ -109,7 +111,7 @@ class ChainOfTrust {
     });
 
     // Initiate a buffer stream to read from when uploading
-    var bufferStream = new stream.PassThrough();
+    let bufferStream = new stream.PassThrough();
     bufferStream.end(new Buffer(signedChainOfTrust.data));
 
     try {
@@ -123,27 +125,17 @@ class ChainOfTrust {
       throw err;
     }
 
-    try {
-      await uploadToS3(task.queue, task.status.taskId, task.runId,
-        cotBufferStream, 'public/chain-of-trust.json', expiration, {
-          'content-type': 'text/plain',
-          'content-length': chainOfTrust.length
-        });
-    } catch (err) {
-      debug(err);
-      throw err;
-    }
+    await uploadToS3(task.queue, task.status.taskId, task.runId,
+      cotBufferStream, 'public/chain-of-trust.json', expiration, {
+        'content-type': 'text/plain',
+        'content-length': chainOfTrust.length
+      });
 
-    try {
-      await uploadToS3(task.queue, task.status.taskId, task.runId,
-        sigBufferStream, 'public/chain-of-trust.json.sig', expiration, {
-          'content-type': 'application/octet-stream',
-          'content-length': chainOfTrustSig.length
-        });
-    } catch (err) {
-      debug(err);
-      throw err;
-    }
+    await uploadToS3(task.queue, task.status.taskId, task.runId,
+      sigBufferStream, 'public/chain-of-trust.json.sig', expiration, {
+        'content-type': 'application/octet-stream',
+        'content-length': chainOfTrustSig.length
+      });
 
   }
 

@@ -80,7 +80,7 @@ suite('certificate of trust', () => {
     let chainOfTrustSig = (await got(url, {encoding: null})).body;
 
     let verifyKey = Buffer.from(fs.readFileSync('test/fixtures/ed25519_public_key', 'ascii'), 'base64');
-    assert(tweetnacl.sign.detached.verify(new Uint8Array(Buffer.from(chainOfTrust)), Buffer.from(chainOfTrustSig), verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
+    assert(tweetnacl.sign.detached.verify(Buffer.from(chainOfTrust), Buffer.from(chainOfTrustSig), verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
 
     // openpgp cot
     let signedChainOfTrust = await getArtifact(result, 'public/chainOfTrust.json.asc');

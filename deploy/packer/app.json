@@ -39,6 +39,20 @@
     },
     {
       "type":           "file",
+      "source":         "deploy/bin/gen-ed25519-key.js",
+      "destination":    "/tmp/gen-ed25519-key.js"
+    },
+    {
+      "type":           "shell",
+      "inline":         ["chmod u+x /tmp/gen-ed25519-key.js"]
+    },
+    {
+      "type":           "shell",
+      "inline":         ["/tmp/gen-ed25519-key.js"],
+      "only":           ["hvm-builder"]
+    },
+    {
+      "type":           "file",
       "source":         "{{user `cotSigningKey`}}",
       "destination":    "docker-worker-gpg-signing-key.key",
       "only":           ["hvm-builder-trusted"]
