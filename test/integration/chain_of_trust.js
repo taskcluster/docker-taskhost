@@ -9,6 +9,7 @@ const testworker = require('../post_task');
 const openpgp = require('openpgp');
 const tweetnacl = require('tweetnacl');
 const taskcluster = require('taskcluster-client');
+const got = require('got');
 const {removeImage} = require('../../src/lib/util/remove_image');
 const {TASK_ID, TASK_IMAGE_HASH, TASK_IMAGE_ARTIFACT_HASH} = require('../fixtures/image_artifacts');
 
@@ -74,58 +75,11 @@ suite('certificate of trust', () => {
 
     // ed25519 cot
     let chainOfTrust = await getArtifact(result, 'public/chain-of-trust.json');
-    var chainOfTrustSig = Buffer.from("");
-    // let chainOfTrustSig = await getArtifact(result, 'public/chain-of-trust.json.sig');
-
-    // getArtifact for the sig seems to corrupt??
-    var https = require('https');
     let queue = new taskcluster.Queue();
-    let url = queue.buildUrl(queue.getArtifact, result.taskId, result.runId, 'public/chain-of-trust.json.sig')
-    console.log(url);
-    https.get(url, (res) => {
-      console.log('statusCode:', res.statusCode);
-      console.log('headers:', res.headers);
-
-      res.on('data', (d) => {
-        // this doesn't work, we have a chainOfTrustSig of size 0
-        chainOfTrustSig = Buffer.concat([chainOfTrustSig, d]);
-      });
-
-    }).on('error', (e) => {
-      console.error(e);
-    });
+    let url = queue.buildUrl(queue.getArtifact, result.taskId, result.runId, 'public/chain-of-trust.json.sig');
+    let chainOfTrustSig = (await got(url, {encoding: null})).body;
 
     let verifyKey = Buffer.from(fs.readFileSync('test/fixtures/ed25519_public_key', 'ascii'), 'base64');
-    console.log("cot sha256:");
-    let cotHash = crypto.createHash('sha256');
-    cotHash.on('readable', () => {
-      // Only one element is going to be produced by the
-      // hash stream.
-      const data = cotHash.read();
-      if (data) {
-        console.log(data.toString('hex'));
-      }
-    });
-
-    cotHash.write(chainOfTrust);
-    cotHash.end();
-
-    console.log("cot sig sha256:");
-    let sigHash = crypto.createHash('sha256');
-    sigHash.on('readable', () => {
-      // Only one element is going to be produced by the
-      // hash stream.
-      const data = sigHash.read();
-      if (data) {
-        console.log(data.toString('hex'));
-      }
-    });
-
-    sigHash.write(chainOfTrustSig);
-    sigHash.end();
-    console.log(chainOfTrustSig.length);
-    console.log(typeof chainOfTrustSig);
-    console.log(Buffer.from(chainOfTrustSig).toString('base64'));
     assert(tweetnacl.sign.detached.verify(new Uint8Array(Buffer.from(chainOfTrust)), Buffer.from(chainOfTrustSig), verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
 
     // openpgp cot
