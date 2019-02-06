@@ -26,10 +26,8 @@ class ChainOfTrust {
     this.hash = crypto.createHash('sha256');
     let armoredKey = fs.readFileSync(task.runtime.signingKeyLocation, 'ascii');
     this.key = openpgp.key.readArmored(armoredKey).keys;
-    this.ed25519Key = Buffer.from(fs.readFileSync(task.runtime.ed25519SigningKeyLocation, 'ascii'), 'base64');
-// XXX the below commented code breaks the integration test, with or without the 'ascii'
-//    this.ed25519Key = Buffer.from(await new Promise((accept, reject) =>
-//      fs.readFile(task.runtime.ed25519SigningKeyLocation, (err, data) => err ? reject(err) : accept(data), 'ascii')), 'base64');
+    this.ed25519Key = Buffer.from(await new Promise((accept, reject) =>
+      fs.readFile(task.runtime.ed25519SigningKeyLocation, 'ascii', (err, data) => err ? reject(err) : accept(data))), 'base64');
 
     this.file = new temporary.File();
     debug(`created temporary file: ${this.file.path}`);
