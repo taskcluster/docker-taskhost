@@ -6,7 +6,6 @@ const getArtifact = require('./helper/get_artifact');
 const cmd = require('./helper/cmd');
 const expires = require('./helper/expires');
 const testworker = require('../post_task');
-const openpgp = require('openpgp');
 const tweetnacl = require('tweetnacl');
 const taskcluster = require('taskcluster-client');
 const got = require('got');
@@ -81,18 +80,6 @@ suite('certificate of trust', () => {
 
     let verifyKey = Buffer.from(fs.readFileSync('test/fixtures/ed25519_public_key', 'ascii'), 'base64');
     assert(tweetnacl.sign.detached.verify(Buffer.from(chainOfTrust), Buffer.from(chainOfTrustSig), verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
-
-    // openpgp cot
-    let signedChainOfTrust = await getArtifact(result, 'public/chainOfTrust.json.asc');
-    let armoredKey = fs.readFileSync('test/fixtures/gpg_signing_key.asc', 'ascii');
-    let key = openpgp.key.readArmored(armoredKey);
-    let opts = {
-      publicKeys: key.keys,
-      message: openpgp.cleartext.readArmored(signedChainOfTrust)
-    };
-    let verified = await openpgp.verify(opts);
-
-    assert(verified.signatures[0].valid, 'OpenPGP certificate does not appear to be valid');
 
     // computer the hash of the live_backing.log which should be the same as the
     // certified log that was uploaded
