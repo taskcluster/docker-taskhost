@@ -25,20 +25,6 @@
     },
     {
       "type":           "file",
-      "source":         "deploy/bin/gen-signing-key",
-      "destination":    "/tmp/gen-signing-key"
-    },
-    {
-      "type":           "shell",
-      "inline":         ["chmod u+x /tmp/gen-signing-key"]
-    },
-    {
-      "type":           "shell",
-      "inline":         ["/tmp/gen-signing-key"],
-      "only":           ["hvm-builder"]
-    },
-    {
-      "type":           "file",
       "source":         "deploy/bin/gen-ed25519-key.js",
       "destination":    "/tmp/gen-ed25519-key.js"
     },

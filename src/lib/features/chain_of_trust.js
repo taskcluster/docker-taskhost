@@ -24,7 +24,6 @@ class ChainOfTrust {
 
   async created(task) {
     this.hash = crypto.createHash('sha256');
-    let armoredKey = fs.readFileSync(task.runtime.signingKeyLocation, 'ascii');
     this.ed25519Key = Buffer.from(await new Promise((accept, reject) =>
       fs.readFile(task.runtime.ed25519SigningKeyLocation, 'ascii', (err, data) => err ? reject(err) : accept(data))), 'base64');
 
