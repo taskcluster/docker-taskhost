@@ -45,19 +45,9 @@
     },
     {
       "type":           "file",
-      "source":         "{{user `cotSigningKey`}}",
-      "destination":    "docker-worker-gpg-signing-key.key",
-      "only":           ["hvm-builder-trusted"]
-    },
-    {
-      "type":           "file",
       "source":         "{{user `cotEd25519SigningKey`}}",
       "destination":    "/tmp/docker-worker-ed25519-cot-signing-key.key",
       "only":           ["hvm-builder-trusted"]
-    },
-    {
-      "type":           "shell",
-      "inline":         ["sudo mv docker-worker-gpg-signing-key.key /etc"]
     },
     {
       "type":           "shell",
