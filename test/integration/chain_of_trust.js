@@ -79,7 +79,8 @@ suite('certificate of trust', () => {
     let chainOfTrustSig = (await got(url, {encoding: null})).body;
 
     let verifyKey = Buffer.from(fs.readFileSync('test/fixtures/ed25519_public_key', 'ascii'), 'base64');
-    assert(tweetnacl.sign.detached.verify(Buffer.from(chainOfTrust), Buffer.from(chainOfTrustSig), verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
+    let verified = Buffer.from(chainOfTrust);
+    assert(tweetnacl.sign.detached.verify(verified, Buffer.from(chainOfTrustSig), verifyKey), 'ed25519 chain of trust signature does not appear to be valid');
 
     // computer the hash of the live_backing.log which should be the same as the
     // certified log that was uploaded
