@@ -65,7 +65,6 @@ suite('certificate of trust', () => {
     let expectedArtifacts = ['public/logs/certified.log',
       'public/chain-of-trust.json',
       'public/chain-of-trust.json.sig',
-      'public/chainOfTrust.json.asc',
       'public/logs/live.log',
       'public/logs/live_backing.log',
       'public/xfoo',
