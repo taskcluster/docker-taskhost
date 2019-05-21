@@ -82,7 +82,7 @@ module.exports = {
       host: instanceData.hostname,
       publicIp: instanceData.networkInterfaces[0].accessConfigs[0].externalIp,
       privateIp: instanceData.networkInterfaces[0].ip,
-      workerId: instanceData.id.toString(),
+      workerId: instanceData.name,
       workerGroup: zone,
       workerNodeType: instanceType,
       instanceId: instanceData.id.toString(),
