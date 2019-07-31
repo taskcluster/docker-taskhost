@@ -37,6 +37,10 @@ module.exports = {
       throw new Error('No config file found');
     }
     const content = fs.readFileSync(configFile, 'utf8');
-    return JSON.parse(content);
+    return Object.assign({
+      capacityManagement: {
+        diskspaceThreshold: 30000000000,
+      },
+    }, JSON.parse(content));
   }
 };
