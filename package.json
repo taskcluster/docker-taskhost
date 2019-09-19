@@ -70,7 +70,6 @@
     "taskcluster-client": "^11.0.4",
     "taskcluster-lib-monitor": "^10.0.0",
     "taskcluster-lib-scopes": "^10.0.1",
-    "taskcluster-lib-testing": "^12.1.2",
     "taskcluster-lib-urls": "^10.1.1",
     "taskcluster-lib-validate": "12.0.0",
     "taskcluster-task-factory": "^0.6.4",
