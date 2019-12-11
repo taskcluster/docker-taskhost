@@ -18,6 +18,7 @@ const DockerSave = require('./features/docker_save');
 const Interactive = require('./features/interactive.js');
 const BalrogVPNProxy = require('./features/balrog_vpn_proxy');
 const BalrogStageVPNProxy = require('./features/balrog_stage_vpn_proxy');
+const DisableSeccomp = require('./features/disable_seccomp');
 
 const features = {
   localLiveLog: {
@@ -122,6 +123,14 @@ const features = {
                  'container; it is otherwise disallowed by Docker\'s security policy. ',
     defaults: false,
     module: AllowPtrace
+  },
+
+  disableSeccomp: {
+    title: 'Disables the seccomp sandbox within the container',
+    description: 'This disables the seccomp sandbox, so the container can make ' +
+                 'any available system call.',
+    defaults: false,
+    module: DisableSeccomp
   }
 };
 

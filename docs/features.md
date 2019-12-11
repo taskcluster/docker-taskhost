@@ -258,3 +258,14 @@ While this should be safe, assuming that all processes in the task container are
 
 The task needs `docker-worker:feature:allowPtrace` scope to run with this feature enabled.
 
+#### Feature: `disableSeccomp`
+
+Status: experimental
+
+This feature disables the seccomp system call filter for the container.
+
+By default Docker blocks a number of system calls required by programs like `rr`, including `ptrace`, `perf_event_open`, `process_vm_writev`, and possibly others.
+In particular, `perf_event_open` can leak a lot of information on the host, and therefore this feature should not be used in production.
+
+The task needs `docker-worker:feature:disableSeccomp` scope to run with this feature enabled.
+

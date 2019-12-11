@@ -415,6 +415,10 @@ class Task extends EventEmitter {
       procConfig.create.HostConfig.CapAdd = ['SYS_PTRACE'];
     }
 
+    if(this.task.payload.features && this.task.payload.features.disableSeccomp) {
+      procConfig.create.HostConfig.SecurityOpt = ['seccomp=unconfined'];
+    }
+
     return procConfig;
   }
 
