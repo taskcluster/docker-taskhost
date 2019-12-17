@@ -132,6 +132,12 @@
           "type": "boolean",
           "default": false
         },
+        "disableSeccomp": {
+          "title": "Container does not have a seccomp profile set.",
+          "description": "Allows a task to run without seccomp, similar to running docker with `--security-opt seccomp=unconfined`.  This only works for worker-types configured to enable it.",
+          "type": "boolean",
+          "default": false
+        },
         "devices": {
           "title": "Devices to be attached to task containers",
           "description": "Allows devices from the host system to be attached to a task container similar to using `--device` in docker. ",
@@ -271,11 +277,6 @@
           "type": "boolean",
           "title": "Allow ptrace within the container",
           "description": "This allows you to use the Linux ptrace functionality inside the container; it is otherwise disallowed by Docker's security policy. "
-        },
-        "disableSeccomp": {
-          "type": "boolean",
-          "title": "Disable seccomp within the container",
-          "description": "This sets the seccomp system call filter to 'unconfined', so any system call can be made."
         },
         "chainOfTrust": {
           "type": "boolean",

@@ -128,6 +128,28 @@ function runAsPrivileged(task, allowPrivilegedTasks) {
   return true;
 }
 
+function runWithoutSeccomp(task, allowDisableSeccompTasks) {
+  let taskCapabilities = task.payload.capabilities || {};
+  let disableSeccompTask = taskCapabilities.disableSeccomp || false;
+  if (!disableSeccompTask) return false;
+
+  if (!scopeMatch(task.scopes, [['docker-worker:capability:disableSeccomp']])) {
+    throw new Error(
+      'Insufficient scopes to run task without seccomp. Try ' +
+      'adding docker-worker:capability:disableSeccomp to the .scopes array'
+    );
+  }
+
+  if (!allowDisableSeccompTasks) {
+    throw new Error(
+      'Cannot run task using docker without a seccomp profile.  Worker ' +
+      'must be enabled to allow running of tasks without seccomp.'
+    );
+  }
+
+  return true;
+}
+
 async function buildDeviceBindings(devices, expandedScopes) {
   let allowed = await hasPrefixedScopes('docker-worker:capability:device:', devices, expandedScopes);
 
@@ -328,6 +350,10 @@ class Task extends EventEmitter {
       this.task, this.runtime.dockerConfig.allowPrivileged
     );
 
+    let disableSeccompTask = runWithoutSeccomp(
+      this.task, this.runtime.dockerConfig.allowDisableSeccomp
+    );
+
     let procConfig = {
       start: {},
       create: {
@@ -351,6 +377,9 @@ class Task extends EventEmitter {
         }
       }
     };
+    if (disableSeccompTask) {
+      procConfig.create.HostConfig.SecurityOpt = ['seccomp=unconfined'];
+    }
 
     // Zero is a valid option so only check for existence.
     if ('cpusetCpus' in this.options) {
@@ -413,10 +442,6 @@ class Task extends EventEmitter {
 
     if(this.task.payload.features && this.task.payload.features.allowPtrace) {
       procConfig.create.HostConfig.CapAdd = ['SYS_PTRACE'];
-    }
-
-    if(this.task.payload.features && this.task.payload.features.disableSeccomp) {
-      procConfig.create.HostConfig.SecurityOpt = ['seccomp=unconfined'];
     }
 
     return procConfig;
