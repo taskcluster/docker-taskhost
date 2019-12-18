@@ -15,6 +15,7 @@ tasks:
     scopes:
       - 'docker-worker:cache:docker-worker-garbage-*'
       - 'docker-worker:capability:privileged'
+      - 'docker-worker:capability:disableSeccomp'
       - 'docker-worker:capability:device:loopbackAudio'
       - 'docker-worker:capability:device:loopbackVideo'
       - 'secrets:get:project/taskcluster/testing/docker-worker/ci-creds'
@@ -28,6 +29,7 @@ tasks:
           while ! yarn install --frozen-lockfile; do rm -rf node_modules; sleep 30; done && node_modules/.bin/eslint src test deploy
       capabilities:
         privileged: true
+        disableSeccomp: true
         devices:
           loopbackAudio: true
           loopbackVideo: true
@@ -57,6 +59,7 @@ tasks:
     scopes:
       - 'docker-worker:cache:docker-worker-garbage-*'
       - 'docker-worker:capability:privileged'
+      - 'docker-worker:capability:disableSeccomp'
       - 'docker-worker:capability:device:loopbackAudio'
       - 'docker-worker:capability:device:loopbackVideo'
       - 'secrets:get:project/taskcluster/testing/docker-worker/ci-creds'
@@ -71,6 +74,7 @@ tasks:
           ./test/docker-worker-test --this-chunk 1 --total-chunks 5
       capabilities:
         privileged: true
+        disableSeccomp: true
         devices:
           loopbackAudio: true
           loopbackVideo: true
@@ -100,6 +104,7 @@ tasks:
     scopes:
       - 'docker-worker:cache:docker-worker-garbage-*'
       - 'docker-worker:capability:privileged'
+      - 'docker-worker:capability:disableSeccomp'
       - 'docker-worker:capability:device:loopbackAudio'
       - 'docker-worker:capability:device:loopbackVideo'
       - 'secrets:get:project/taskcluster/testing/docker-worker/ci-creds'
@@ -114,6 +119,7 @@ tasks:
           ./test/docker-worker-test --this-chunk 2 --total-chunks 5
       capabilities:
         privileged: true
+        disableSeccomp: true
         devices:
           loopbackAudio: true
           loopbackVideo: true
@@ -143,6 +149,7 @@ tasks:
     scopes:
       - 'docker-worker:cache:docker-worker-garbage-*'
       - 'docker-worker:capability:privileged'
+      - 'docker-worker:capability:disableSeccomp'
       - 'docker-worker:capability:device:loopbackAudio'
       - 'docker-worker:capability:device:loopbackVideo'
       - 'secrets:get:project/taskcluster/testing/docker-worker/ci-creds'
@@ -157,6 +164,7 @@ tasks:
           ./test/docker-worker-test --this-chunk 3 --total-chunks 5
       capabilities:
         privileged: true
+        disableSeccomp: true
         devices:
           loopbackAudio: true
           loopbackVideo: true
@@ -186,6 +194,7 @@ tasks:
     scopes:
       - 'docker-worker:cache:docker-worker-garbage-*'
       - 'docker-worker:capability:privileged'
+      - 'docker-worker:capability:disableSeccomp'
       - 'docker-worker:capability:device:loopbackAudio'
       - 'docker-worker:capability:device:loopbackVideo'
       - 'secrets:get:project/taskcluster/testing/docker-worker/ci-creds'
@@ -200,6 +209,7 @@ tasks:
           ./test/docker-worker-test --this-chunk 4 --total-chunks 5
       capabilities:
         privileged: true
+        disableSeccomp: true
         devices:
           loopbackAudio: true
           loopbackVideo: true
@@ -229,6 +239,7 @@ tasks:
     scopes:
       - 'docker-worker:cache:docker-worker-garbage-*'
       - 'docker-worker:capability:privileged'
+      - 'docker-worker:capability:disableSeccomp'
       - 'docker-worker:capability:device:loopbackAudio'
       - 'docker-worker:capability:device:loopbackVideo'
       - 'secrets:get:project/taskcluster/testing/docker-worker/ci-creds'
@@ -243,6 +254,7 @@ tasks:
           ./test/docker-worker-test --this-chunk 5 --total-chunks 5
       capabilities:
         privileged: true
+        disableSeccomp: true
         devices:
           loopbackAudio: true
           loopbackVideo: true
