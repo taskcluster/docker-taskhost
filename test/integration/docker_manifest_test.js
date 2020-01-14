@@ -36,7 +36,7 @@ suite('docker image with manifest.json file', function() {
     await worker.queue.createTask(imageTaskId, taskDef);
 
     await worker.queue.claimTask(imageTaskId, 0, {
-      workerGroup: 'docker-worker',
+      workerGroup: 'random-local-worker',
       workerId: 'docker-worker'
     });
 
