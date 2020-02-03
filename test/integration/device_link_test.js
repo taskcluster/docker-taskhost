@@ -175,7 +175,7 @@ suite('device linking within containers', () => {
     );
   });
 
-  test('/dev/shm is shared with the host', async () => {
+  test.skip('/dev/shm is shared with the host', async () => {
     worker = new TestWorker(DockerWorker);
     await worker.launch();
     let task = {

@@ -148,7 +148,7 @@
               "type": "boolean"
             },
             "hostSharedMemory": {
-              "title": "Host shared memory device",
+              "title": "Host shared memory device (Experimental)",
               "description": "Mount /dev/shm from the host in the container.",
               "type": "boolean"
             }
