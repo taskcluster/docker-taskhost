@@ -77,7 +77,6 @@ tasks:
         devices:
           loopbackAudio: true
           loopbackVideo: true
-          hostSharedMemory: true
       env:
         WORKER_CI: '1'
         TASKCLUSTER_ROOT_URL: https://community-tc.services.mozilla.com
