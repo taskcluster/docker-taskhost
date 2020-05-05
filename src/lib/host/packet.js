@@ -42,6 +42,7 @@ module.exports = {
       // * worker type - the taskcluster worker type name
       // * capacity - the worker capacity
       // * allowPrivileged - boolean indicating if the instance is allowed to run privileged docker containers
+      // * disableSeccomp - boolean indicating if the instance is allowed to run without seccomp sandbox
 
       const userdata = fs.readFileSync('/var/lib/cloud/instance/user-data.txt')
         .toString()
@@ -95,6 +96,7 @@ module.exports = {
         },
         dockerConfig: {
           allowPrivileged: userdata.allowPrivileged == 'true',
+          disableSeccomp: userdata.disableSeccomp == 'true',
         },
         logging: {
           secureLiveLogging: false,

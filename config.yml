@@ -33,6 +33,10 @@ defaults:
     delayFactor: 15000
     # Value between 0 and 1
     randomizationFactor: 0.25
+    # Disable the seccomp system call filter. This is useful for some tasks
+    # (eg. using `rr`) but it allows significant information leakage, and its
+    # use should not be considered secure.
+    disableSeccomp: false
   features:
     relengAPIProxy:
       image: 'taskcluster/relengapi-proxy:2.3.1'
@@ -196,6 +200,7 @@ test:
     maxAttempts: 5
     delayFactor: 100
     randomizationFactor: 0.25
+    disableSeccomp: false
 
   taskQueue:
     pollInterval: 1000
